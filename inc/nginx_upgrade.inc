@@ -359,7 +359,7 @@ funct_showtempfile
 ################
 
 # cmservice nginx stop
-/usr/local/sbin/nginx -s stop
+# /usr/local/sbin/nginx -s stop
 
     # speed up nginx wait time if not many vhosts are on server
     if [[ "$(ls /usr/local/nginx/conf/conf.d/ | wc -l)" -le 5 ]]; then
@@ -368,41 +368,80 @@ funct_showtempfile
 
 # sleep $NGINXUPGRADESLEEP
 
-sleep 3
-NGINXPSCHECK=`ps --no-heading -C nginx`
+# sleep 3
+# NGINXPSCHECK=`ps --no-heading -C nginx`
 
-if [ ! -z "$NGINXPSCHECK" ]; then
-echo ""
-echo "nginx seems to be still running, trying to stop it again..."
-echo ""
-# /etc/init.d/nginx stop and suppress any error messages
-/usr/local/sbin/nginx -s stop 2>/dev/null
-sleep $NGINXUPGRADESLEEP
-fi
+# if [ ! -z "$NGINXPSCHECK" ]; then
+# echo ""
+# echo "nginx seems to be still running, trying to stop it again..."
+# echo ""
+# # /etc/init.d/nginx stop and suppress any error messages
+# /usr/local/sbin/nginx -s stop 2>/dev/null
+# sleep $NGINXUPGRADESLEEP
+# fi
 
-    time make install
+GETNGXPID=$(cat /usr/local/nginx/logs/nginx.pid)
+
+echo "nginx master id: $GETNGXPID"
+echo
+
+ps axw -o pid,ppid,user,%cpu,vsz,wchan,command | egrep '(nginx|PID)'
+echo
+
+    time make install clean
+
+echo
+echo USR2
+
+kill -USR2 $GETNGXPID
+
+ps axw -o pid,ppid,user,%cpu,vsz,wchan,command | egrep '(nginx|PID)'
+echo
+
+echo WINCH
+
+kill -WINCH $GETNGXPID
+
+ps axw -o pid,ppid,user,%cpu,vsz,wchan,command | egrep '(nginx|PID)'
+echo
+
+echo QUIT
+
+kill -QUIT $GETNGXPID
+
+ps axw -o pid,ppid,user,%cpu,vsz,wchan,command | egrep '(nginx|PID)'
+echo
 
 # unset_intelflags
+
+    # /etc/init.d/nginx start
+    service nginx reload
 
 ################
 # error check
 
-	ERR=$?
-	if [ $ERR != 0 ]; then
-	NOTIFY_MESSAGE="\n`date`\nError: $ERR, Nginx wasn't installed properly\n"
-	echo -e "$NOTIFY_MESSAGE" >> "$TMP_MSGFILE"
+    ERR=$?
+    if [ $ERR != 0 ]; then
+    NOTIFY_MESSAGE="\n`date`\nError: $ERR, Nginx wasn't installed properly\n"
+    echo -e "$NOTIFY_MESSAGE" >> "$TMP_MSGFILE"
 
 funct_showtempfile
-	cleanup_msg
+    cleanup_msg
 
-	exit
-	
-	else
+    exit
+    
+    else
 
-	NOTIFY_MESSAGE="\n`date`\nSuccess: Nginx was installed properly\n"
-	echo -e "$NOTIFY_MESSAGE" >> "$TMP_MSGFILE"
+    NOTIFY_MESSAGE="\n`date`\nSuccess: Nginx was installed properly\n"
+    echo -e "$NOTIFY_MESSAGE" >> "$TMP_MSGFILE"
 
-    /etc/init.d/nginx start
+GETNGXPID=$(cat /usr/local/nginx/logs/nginx.pid)
+
+echo "nginx master id: $GETNGXPID"
+echo
+
+ps axw -o pid,ppid,user,%cpu,vsz,wchan,command | egrep '(nginx|PID)'
+echo
 
     # cecho "Checking OpenSSL version used by Nginx..." $boldyellow
     # SSLIB=$(ldd `which nginx` | grep ssl | awk '{print $3}')
