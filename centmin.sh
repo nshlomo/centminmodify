@@ -447,6 +447,7 @@ POSTFIX_INSTALL=y            # Install Postfix (and mailx) set to n and SENDMAIL
 # Nginx
 NGINX_VERSION='1.9.12'       # Use this version of Nginx
 NGINX_VHOSTSSL='y'           # enable centmin.sh menu 2 prompt to create self signed SSL vhost 2nd vhost conf
+NGINX_LEVHOSTSSL='y'         # enable letsencrypt client support in nginx vhost auto generation routine
 NGINXBACKUP='y'
 NGINXDIR='/usr/local/nginx'
 NGINXCONFDIR="${NGINXDIR}/conf"
