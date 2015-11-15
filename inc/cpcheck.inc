@@ -314,6 +314,11 @@ xpowerby() {
 		fi
 	fi
 	fi
+
+	CHECKCONTENTTYPEB=$(grep 'more_set_headers' /usr/local/nginx/conf/staticfiles.conf)
+	if [ "$CHECKCONTENTTYPEB" ]; then
+		sed -i "s|more_set_headers    \"Content-Type: text\/plain\"|default_type text\/plain;\n            	    charset off|" /usr/local/nginx/conf/staticfiles.conf
+	fi	
 }
 
 cpcheck() {
