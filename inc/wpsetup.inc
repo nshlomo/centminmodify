@@ -628,9 +628,9 @@ server {
   include /usr/local/nginx/conf/503include-main.conf;
 
   # prevent access to ./directories and files
-  location ~ (?:^|/)\. {
-   deny all;
-  }
+  #location ~ (?:^|/)\. {
+  # deny all;
+  #}
 
   #include /usr/local/nginx/conf/wpincludes/${vhostname}/wpcacheenabler_${vhostname}.conf;
   include /usr/local/nginx/conf/wpincludes/${vhostname}/wpsupercache_${vhostname}.conf;
@@ -761,9 +761,9 @@ server {
   include /usr/local/nginx/conf/503include-main.conf;
 
   # prevent access to ./directories and files
-  location ~ (?:^|/)\. {
-   deny all;
-  }
+  #location ~ (?:^|/)\. {
+  # deny all;
+  #}
 
   #include /usr/local/nginx/conf/wpincludes/${vhostname}/wpcacheenabler_${vhostname}.conf;
   include /usr/local/nginx/conf/wpincludes/${vhostname}/wpsupercache_${vhostname}.conf;
