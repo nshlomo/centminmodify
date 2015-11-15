@@ -446,9 +446,9 @@ server {
   root /home/nginx/domains/$vhostname/public;
 
   # prevent access to ./directories and files
-  location ~ (?:^|/)\. {
-   deny all;
-  }  
+  #location ~ (?:^|/)\. {
+  # deny all;
+  #}  
 
   location / {
 
@@ -509,9 +509,9 @@ server {
   root /home/nginx/domains/$vhostname/public;
 
   # prevent access to ./directories and files
-  location ~ (?:^|/)\. {
-   deny all;
-  }  
+  #location ~ (?:^|/)\. {
+  # deny all;
+  #}  
 
   location / {
 
