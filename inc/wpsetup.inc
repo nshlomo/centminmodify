@@ -217,6 +217,46 @@ if [[ "$NGINX_VHOSTSSL" = [yY] ]]; then
   echo
 fi
 
+if [[ "$NGINX_LEVHOSTSSL" = [yY] ]]; then
+  getuseragent
+  echo
+  cecho "To get Letsencrypt SSL certificate, you must already have updated intended" $boldgreen
+  cecho "domain vhost name's DNS A record to this server's IP addresss." $boldgreen
+  cecho "If top level domain, DNS A record is needed also for www. version of domain" $boldgreen
+  cecho "otherwise, Letsencrypt domain name validation will fail." $boldgreen
+  # check if entered vhostname is top level domain or a subdomain if top level, need the ssl certificate
+  # to also cover www. version of the top level domain vhostname via a multi-domain SAN LE ssl certificate
+  TOPLEVELCHECK=$(dig soa $vhostname | grep -v ^\; | grep SOA | awk '{print $1}' | sed 's/\.$//')
+  # check if domain is behind Cloudflare proxies as Letsencrypt doesn't work if Cloudflare is in
+  # front of your intended domain server
+  CFCHECK=$(dig +short -t NS $vhostname | grep cloudflare.com)
+  if [[ "$CFCHECK" ]]; then
+    echo
+    cecho "!! $vhostname seems to be using Cloudflare DNS !!" $boldyellow
+    cecho "If you're using Cloudflare caching, you will" $boldyellow
+    cecho "need to temporarily disable it for Letsencrypt" $boldyellow
+    cecho "SSL validation. Note auto renewal will not work" $boldyellow
+    cecho "as Cloudflare cache would need to be disabled each time" $boldyellow
+  fi  
+  if [[ "$TOPLEVELCHECK" = "$vhostname" ]]; then
+    # top level domain
+    TOPLEVEL=y
+  elif [[ -z "$TOPLEVELCHECK" ]]; then
+    # vhost dns not setup
+    TOPLEVEL=z
+  else
+    # subdomain or non top level domain
+    TOPLEVEL=n
+  fi
+  echo
+  if [[ "$TOPLEVEL" = [yY] ]]; then
+    VHOST_ACHECK=$(dig -t A +short @8.8.8.8 $vhostname)
+    VHOST_AWWWCHECK=$(dig -t A +short @8.8.8.8 www.$vhostname | grep -v $vhostname)
+  else
+    VHOST_ACHECK=$(dig -t A +short @8.8.8.8 $vhostname)
+  fi
+fi
+
 echo "Theme Setup: "
 read -ep "Install CyberChimps Responsive Theme (cyberchimps.com/responsive-theme/) [y/n]: " responsivetheme
 
