@@ -1,7 +1,7 @@
 #!/bin/bash
 ##################################################################
 # letsencrypt client standalone installer for centminmod.com
-# just installs the letsencrypt client itself for initial setup
+# just installs the letsencrypt client itself for initial setups
 ##################################################################
 DT=`date +"%d%m%y-%H%M%S"`
 CENTMINLOGDIR='/root/centminlogs'
