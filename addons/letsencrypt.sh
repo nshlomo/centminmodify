@@ -373,7 +373,7 @@ else
   SPDY_HEADER='add_header Alternate-Protocol  443:npn-spdy/3;'
 fi
 
-if [ -f "/usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf "]; then
+if [ -f "/usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf" ]; then
 	echo "backup existing /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf"
 	cp -a /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf-backup-$DT
 fi
