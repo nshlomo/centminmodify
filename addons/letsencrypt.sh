@@ -379,7 +379,7 @@ if [ -f "/usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf "]; then
 fi
 
 # separate ssl vhost at yourdomain.com.ssl.conf
-cat > "/usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf"<<ESS
+cat > "/usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf" <<ESS
 # Centmin Mod Getting Started Guide
 # must read http://centminmod.com/getstarted.html
 # For HTTP/2 SSL Setup
@@ -468,7 +468,7 @@ server {
   #include /usr/local/nginx/conf/errorpage.conf;
   include /usr/local/nginx/conf/vts_server.conf;
 }
-ESS	
+ESS
 }
 
 ##################################################################
