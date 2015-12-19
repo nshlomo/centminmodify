@@ -1396,7 +1396,43 @@ CLANG_CCOPT=' -Wno-sign-compare -Wno-string-plus-int -Wno-deprecated-declaration
 	fi
 else
 	CLANG_CCOPT=""
-	echo "CLANG_CCOPT=\"\""
+fi
+
+# devtoolset-3 usage for ngx_pagespeed 1.10 branch which doesn't support
+# centos 6 based gcc 4.4.7
+if [[ "$CENTOS_SIX" = '6' && "$CLANG" = [nN] ]]; then
+	if [[ ! -f /opt/rh/devtoolset-3/root/usr/bin/gcc || ! -f /opt/rh/devtoolset-3/root/usr/bin/g++ ]]; then
+		scl_install
+		export PS_NGX_EXTRA_FLAGS="--with-cc=/opt/rh/devtoolset-3/root/usr/bin/gcc"
+		# PS_FLAGS=$(echo " $PS_NGX_EXTRA_FLAGS")
+		PS_FLAGS=""
+		if [[ "$INITIALINSTALL" != [yY] ]]; then
+    		unset CC
+    		unset CXX
+    		export CC="ccache /opt/rh/devtoolset-3/root/usr/bin/gcc"
+			export CXX="ccache /opt/rh/devtoolset-3/root/usr/bin/g++"
+		else
+    		unset CC
+    		unset CXX
+    		export CC="/opt/rh/devtoolset-3/root/usr/bin/gcc"
+			export CXX="/opt/rh/devtoolset-3/root/usr/bin/g++"
+		fi
+	elif [[ -f /opt/rh/devtoolset-3/root/usr/bin/gcc && -f /opt/rh/devtoolset-3/root/usr/bin/g++ ]]; then
+		export PS_NGX_EXTRA_FLAGS="--with-cc=/opt/rh/devtoolset-3/root/usr/bin/gcc"
+		# PS_FLAGS=$(echo " $PS_NGX_EXTRA_FLAGS")
+		PS_FLAGS=""
+		if [[ "$INITIALINSTALL" != [yY] ]]; then
+    		unset CC
+    		unset CXX
+    		export CC="ccache /opt/rh/devtoolset-3/root/usr/bin/gcc"
+			export CXX="ccache /opt/rh/devtoolset-3/root/usr/bin/g++"
+		else
+    		unset CC
+    		unset CXX
+    		export CC="/opt/rh/devtoolset-3/root/usr/bin/gcc"
+			export CXX="/opt/rh/devtoolset-3/root/usr/bin/g++"
+		fi
+	fi
 fi
 
 # devtoolset-3 usage for ngx_pagespeed 1.10 branch which doesn't support

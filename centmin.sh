@@ -270,7 +270,7 @@ CCACHESIZE='2.2G'
 # tarballs in parallel for faster initial installs
 PARALLEL_MODE=y
 # compiler related
-CLANG='y'                     # Nginx and LibreSSL
+CLANG='n'                     # Nginx and LibreSSL
 CLANG_PHP='n'                 # PHP
 CLANG_APC='n'                 # APC Cache
 CLANG_MEMCACHED='n'           # Memcached menu option 10 routine
