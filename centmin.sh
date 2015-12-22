@@ -251,7 +251,7 @@ CCACHESIZE='2.2G'
 
 #####################################################
 # compiler related
-CLANG='y'                     # Nginx and LibreSSL
+CLANG='n'                     # Nginx and LibreSSL
 CLANG_PHP='n'                 # PHP
 CLANG_APC='n'                 # APC Cache
 CLANG_MEMCACHED='n'           # Memcached menu option 10 routine
