@@ -741,15 +741,18 @@ if [[ "$CLANG" = [yY] ]]; then
 	fi
 	# ngx_pagespeed => 1.10
 	if [[ "$(echo $NGXPGSPEED_VER | cut -d . -f1)" -ge '1' ]] && [[ "$(echo $NGXPGSPEED_VER | cut -d . -f2)" -ge '10' ]] && [[ "$NGINX_PAGESPEED" = [yY] ]] && [[ "$CENTOS_SIX" = '6' ]]; then
-		CCTOOLSET=' --gcc-toolchain=/opt/rh/devtoolset-3/root/usr/'
+		CCTOOLSET='--gcc-toolchain=/opt/rh/devtoolset-3/root/usr/'
+		CCTOOLSETOPT=' --gcc-toolchain=/opt/rh/devtoolset-3/root/usr/'
+		export CFLAGS="$CCTOOLSET"
 	else
 		CCTOOLSET=""
+		CCTOOLSETOPT=""
 	fi
 	# ccache compiler has some initial overhead for compiles but speeds up subsequent
 	# recompiles. however on initial install ccache has no benefits, so for initial
 	# centmin mod install disabling ccache will in theory speed up first time installs
 	if [[ "$INITIALINSTALL" != [yY] ]]; then
-		export CC="ccache /usr/bin/clang -ferror-limit=0${CCTOOLSET}"
+		export CC="ccache /usr/bin/clang -ferror-limit=0"
 		export CXX="ccache /usr/bin/clang++ -ferror-limit=0"
 		export CCACHE_CPP2=yes
 		CLANG_CCOPT=' -Wno-sign-compare -Wno-string-plus-int -Wno-deprecated-declarations -Wno-unused-parameter -Wno-unused-const-variable -Wno-conditional-uninitialized -Wno-mismatched-tags -Wno-c++11-extensions -Wno-sometimes-uninitialized -Wno-parentheses-equality -Wno-tautological-compare -Wno-self-assign -Wno-deprecated-register -Wno-deprecated -Wno-invalid-source-encoding -Wno-pointer-sign -Wno-parentheses -Wno-enum-conversion'

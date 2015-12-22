@@ -480,6 +480,9 @@ fi
 if [[ "$CLANG" = [yY] ]]; then
     unset CC
     unset CXX
+    if [[ "$(echo $NGXPGSPEED_VER | cut -d . -f1)" -ge '1' ]] && [[ "$(echo $NGXPGSPEED_VER | cut -d . -f2)" -ge '10' ]] && [[ "$NGINX_PAGESPEED" = [yY] ]] && [[ "$CENTOS_SIX" = '6' ]]; then
+        unset CFLAGS
+    fi
     #unset CCACHE_CPP2
     export CC="ccache /usr/bin/gcc"
     export CXX="ccache /usr/bin/g++"
