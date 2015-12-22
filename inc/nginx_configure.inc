@@ -752,7 +752,7 @@ if [[ "$CLANG" = [yY] ]]; then
 	# recompiles. however on initial install ccache has no benefits, so for initial
 	# centmin mod install disabling ccache will in theory speed up first time installs
 	if [[ "$INITIALINSTALL" != [yY] ]]; then
-		export CC="ccache /usr/bin/clang -ferror-limit=0"
+		export CC="ccache /usr/bin/clang -ferror-limit=0${CCTOOLSET}"
 		export CXX="ccache /usr/bin/clang++ -ferror-limit=0"
 		export CCACHE_CPP2=yes
 		CLANG_CCOPT=' -Wno-sign-compare -Wno-string-plus-int -Wno-deprecated-declarations -Wno-unused-parameter -Wno-unused-const-variable -Wno-conditional-uninitialized -Wno-mismatched-tags -Wno-c++11-extensions -Wno-sometimes-uninitialized -Wno-parentheses-equality -Wno-tautological-compare -Wno-self-assign -Wno-deprecated-register -Wno-deprecated -Wno-invalid-source-encoding -Wno-pointer-sign -Wno-parentheses -Wno-enum-conversion'
