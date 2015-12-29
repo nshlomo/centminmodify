@@ -611,6 +611,8 @@ if [[ "$levhostssl" = [yY] ]]; then
     echo
     cecho "obtaining Letsencrypt SSL certificate via webroot authentication..." $boldgreen
     echo
+    mkdir -p /home/nginx/domains/${vhostname}/public/.well-known/acme-challenge
+    chown -R nginx:nginx /home/nginx/domains/${vhostname}/public/.well-known/acme-challenge
     if [[ "$TOPLEVEL" = [yY] ]]; then
       echo "/root/.local/share/letsencrypt/bin/letsencrypt -c /etc/letsencrypt/webroot.ini --user-agent $LE_USERAGENT --webroot-path /home/nginx/domains/${vhostname}/public -d ${vhostname} -d www.${vhostname} certonly"
       /root/.local/share/letsencrypt/bin/letsencrypt -c /etc/letsencrypt/webroot.ini --user-agent $LE_USERAGENT --webroot-path /home/nginx/domains/${vhostname}/public -d ${vhostname} -d www.${vhostname} certonly
