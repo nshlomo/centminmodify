@@ -853,6 +853,15 @@ END
 fi
 
 cat > "/usr/local/nginx/conf/wpsecure_${vhostname}.conf" <<EEF
+# prepare for letsencrypt
+# https://community.centminmod.com/posts/17774/
+location ~ /.well-known {
+    location ~ /.well-known/acme-challenge/(.*) {
+            default_type text/plain;
+            charset off;
+    }
+}
+
 # Deny access to any files with a .php extension in the uploads directory
 # Works in sub-directory installs and also in multisite network
 location ~* /(?:uploads|files)/.*\.php\$ {
@@ -1264,6 +1273,8 @@ if [[ "$levhostssl" = [yY] ]]; then
     echo
     cecho "obtaining Letsencrypt SSL certificate via webroot authentication..." $boldgreen
     echo
+    mkdir -p /home/nginx/domains/${vhostname}/public/.well-known/acme-challenge
+    chown -R nginx:nginx /home/nginx/domains/${vhostname}/public/.well-known/acme-challenge
     if [[ "$TOPLEVEL" = [yY] ]]; then
       echo "/root/.local/share/letsencrypt/bin/letsencrypt -c /etc/letsencrypt/webroot.ini --user-agent $LE_USERAGENT --webroot-path /home/nginx/domains/${vhostname}/public -d ${vhostname} -d www.${vhostname} certonly"
       /root/.local/share/letsencrypt/bin/letsencrypt -c /etc/letsencrypt/webroot.ini --user-agent $LE_USERAGENT --webroot-path /home/nginx/domains/${vhostname}/public -d ${vhostname} -d www.${vhostname} certonly
