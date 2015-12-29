@@ -575,6 +575,8 @@ deploycert() {
     					echo
     					cecho "obtaining Letsencrypt SSL certificate via webroot authentication..." $boldgreen
     					echo
+						mkdir -p /home/nginx/domains/${vhostname}/public/.well-known/acme-challenge
+						chown -R nginx:nginx /home/nginx/domains/${vhostname}/public/.well-known/acme-challenge
     					if [[ "$TOPLEVEL" = [yY] ]]; then
       						echo "/root/.local/share/letsencrypt/bin/letsencrypt -c /etc/letsencrypt/webroot.ini --user-agent $LE_USERAGENT --webroot-path /home/nginx/domains/${levhostname}/public -d ${levhostname} -d www.${levhostname}		 certonly"
       						/root/.local/share/letsencrypt/bin/letsencrypt -c /etc/letsencrypt/webroot.ini --user-agent $LE_USERAGENT --webroot-path /home/nginx/domains/${levhostname}/public -d ${levhostname} -d www.${levhostname} 		certonly
