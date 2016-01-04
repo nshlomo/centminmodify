@@ -650,7 +650,7 @@ CFF
       					sed -i "s|#ssl_stapling_verify|ssl_stapling_verify|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
       					sed -i "s|#ssl_trusted_certificate|ssl_trusted_certificate|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
       					sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}-trusted.crt|\/etc\/letsencrypt\/live\/${levhostname}\/fullchain.pem|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
-      					cmservice nginx restart 
+      					/usr/bin/nprestart
     					fi # LECHECK
   					else
     					cecho "/root/.local/share/letsencrypt/bin/letsencrypt not found" $boldgreen
