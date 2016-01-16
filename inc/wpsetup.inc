@@ -1402,7 +1402,7 @@ echo "  if [ "\$daysToExpire" -lt '30' ]; then" >> /usr/local/nginx/conf/ssl/${v
       # cronjob error check and email send
 cat >> "/usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron" <<CFF
     if [ \$? -ne 0 ]; then
-        sleep 1; echo -e "The Lets Encrypt SSL Certificate for ${vhostname} has not been renewed! \n \n" \$ERRORLOG | mail -s "Lets Encrypt Cert Alert" \$EMAIL
+        sleep 1; echo -e "The Lets Encrypt SSL Certificate for ${vhostname} has not been renewed! \n \n" \$ERRORLOG | dos2unix | mail -s "Lets Encrypt Cert Alert" \$EMAIL
       else
         /usr/bin/ngxreload
     fi
