@@ -593,7 +593,7 @@ deploycert() {
       						# EMAIL and LOGGING for cron
       						echo "EMAIL=\$(awk '/email/ {print \$3}' /etc/letsencrypt/webroot.ini)" > /usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron
       						echo "ERRORLOG=\$(tail /var/log/letsencrypt/letsencrypt.log)" >> /usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron
-      						echo "CERT=\"/etc/letsencrypt/live/\${levhostname}/cert.pem\"" >> /usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron
+      						echo "CERT=\"/etc/letsencrypt/live/${levhostname}/cert.pem\"" >> /usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron
       						echo "" >> /usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron
 						
 							echo "if [[ -f "\$CERT" ]]; then" >> /usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron
@@ -613,7 +613,7 @@ deploycert() {
       			# cronjob error check and email send
 cat >> "/usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron" <<CFF
     if [ \$? -ne 0 ]; then
-        sleep 1; echo -e "The Lets Encrypt SSL Certificate for ${vhostname} has not been renewed! \n \n" \$ERRORLOG | mail -s "Lets Encrypt Cert Alert" \$EMAIL
+        sleep 1; echo -e "The Lets Encrypt SSL Certificate for ${vhostname} has not been renewed! \n \n" \$ERRORLOG | dos2unix | mail -s "Lets Encrypt Cert Alert" \$EMAIL
       else
         /usr/bin/ngxreload
     fi

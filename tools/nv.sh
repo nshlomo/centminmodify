@@ -924,7 +924,7 @@ if [[ "$levhostssl" = [yY] ]]; then
       # EMAIL and LOGGING for cron
       echo "EMAIL=\$(awk '/email/ {print \$3}' /etc/letsencrypt/webroot.ini)" > /usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron
       echo "ERRORLOG=\$(tail /var/log/letsencrypt/letsencrypt.log)" >> /usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron
-      echo "CERT=\"/etc/letsencrypt/live/\${vhostname}/cert.pem\"" >> /usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron
+      echo "CERT=\"/etc/letsencrypt/live/${vhostname}/cert.pem\"" >> /usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron
       echo "" >> /usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron
 
 echo "if [[ -f "\$CERT" ]]; then" >> /usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron
