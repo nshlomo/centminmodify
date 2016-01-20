@@ -742,8 +742,8 @@ if [[ "$CLANG" = [yY] ]]; then
 	# ngx_pagespeed => 1.10
 	if [[ "$(echo $NGXPGSPEED_VER | cut -d . -f1)" -ge '1' ]] && [[ "$(echo $NGXPGSPEED_VER | cut -d . -f2)" -ge '10' ]] && [[ "$NGINX_PAGESPEED" = [yY] ]] && [[ "$CENTOS_SIX" = '6' ]]; then
 		CCTOOLSET='--gcc-toolchain=/opt/rh/devtoolset-3/root/usr/'
-		CCTOOLSETOPT=' --gcc-toolchain=/opt/rh/devtoolset-3/root/usr/'
-		export CFLAGS="$CCTOOLSET"
+		#CCTOOLSETOPT=' --gcc-toolchain=/opt/rh/devtoolset-3/root/usr/'
+		#export CFLAGS="$CCTOOLSET"
 	else
 		CCTOOLSET=""
 		CCTOOLSETOPT=""
