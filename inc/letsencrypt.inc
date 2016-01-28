@@ -62,6 +62,9 @@ leclientsetup() {
 	if [[ "$CENTOS_SIX" = '6' && -f /usr/bin/python2.7 ]]; then
 		sed -i "s|--python python2|--python python2.7|" letsencrypt-auto
 	fi
+	if [[ "$CENTOS_SIX" = '6' && -f /usr/bin/virtualenv-2.7 ]]; then
+		sed -i "s|virtualenv --no-site-packages|/usr/bin/virtualenv-2.7 --no-site-packages|" letsencrypt-auto
+	fi
 	# staging endpoint
 	# LE_SERVER='https://acme-staging.api.letsencrypt.org/directory'
 	# live and beta invitee trusted cert endpoint
