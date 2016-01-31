@@ -14,6 +14,7 @@ LECLIENT_OFFICIAL='y'        # use official letsencrypt.org client
 LECLIENT_LE='n'              # use 3rd party shell client https://github.com/Neilpang/le
 LECLIENT_LEKEYLENGTH='2048'  # 3rd party shell client default key length
 LECLIENT_LESTAGE='y'         # 3rd party shell client STAGING API
+LECLIENT_LEBIN='/usr/local/bin/le.sh'
 ##################################################################
 CENTOSVER=$(awk '{ print $3 }' /etc/redhat-release)
 
@@ -200,9 +201,7 @@ FFG
 	echo
 	cecho "----------------------------------------------------" $boldyellow
 	cecho "simple shell based le client is installed at:" $boldgreen
-	cecho "/usr/local/bin/le.sh" $boldgreen
-	cecho "Symlinked to:" $boldgreen
-	cecho "/usr/local/bin/le" $boldgreen
+	cecho "$LECLIENT_LEBIN" $boldgreen
 	cecho "----------------------------------------------------" $boldyellow	
 	echo
 }
@@ -672,7 +671,7 @@ deploycert() {
   					# leclientsetup
 
   					if [[ "$LECLIENT_LE" = [yY] || "$LECLIENT_OFFICIAL" != [yY] ]]; then
-    					if [ -f /usr/local/bin/le ]; then
+    					if [ -f "$LECLIENT_LEBIN" ]; then
       					echo
       					cecho "obtaining Letsencrypt SSL certificate via simple shell le webroot authentication..." $boldgreen
       					echo
@@ -680,19 +679,19 @@ deploycert() {
       					chown -R nginx:nginx /home/nginx/domains/${levhostname}/public/.well-known/acme-challenge
       					if [[ "$TOPLEVEL" = [yY] ]]; then
       						if [[ "$LECLIENT_LESTAGE" = [yY] ]]; then
-        						echo "STAGE=1 FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${levhostname}/public ${levhostname} www.${levhostname} $LECLIENT_LEKEYLENGTH"
-        						STAGE=1 FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${levhostname}/public ${levhostname} www.${levhostname} $LECLIENT_LEKEYLENGTH
+        						echo "STAGE=1 FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${levhostname}/public ${levhostname} www.${levhostname} $LECLIENT_LEKEYLENGTH"
+        						STAGE=1 FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${levhostname}/public ${levhostname} www.${levhostname} $LECLIENT_LEKEYLENGTH
         					else
-        						echo "FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${levhostname}/public ${levhostname} www.${levhostname} $LECLIENT_LEKEYLENGTH"
-        						FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${levhostname}/public ${levhostname} www.${levhostname} $LECLIENT_LEKEYLENGTH
+        						echo "FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${levhostname}/public ${levhostname} www.${levhostname} $LECLIENT_LEKEYLENGTH"
+        						FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${levhostname}/public ${levhostname} www.${levhostname} $LECLIENT_LEKEYLENGTH
         					fi
       					else
       						if [[ "$LECLIENT_LESTAGE" = [yY] ]]; then
-        						echo "STAGE=1 FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${levhostname}/public ${levhostname} no $LECLIENT_LEKEYLENGTH"
-        						STAGE=1 FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${levhostname}/public ${levhostname} no $LECLIENT_LEKEYLENGTH
+        						echo "STAGE=1 FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${levhostname}/public ${levhostname} no $LECLIENT_LEKEYLENGTH"
+        						STAGE=1 FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${levhostname}/public ${levhostname} no $LECLIENT_LEKEYLENGTH
         					else	
-        						echo "FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${levhostname}/public ${levhostname} no $LECLIENT_LEKEYLENGTH"
-        						FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${levhostname}/public ${levhostname} no $LECLIENT_LEKEYLENGTH
+        						echo "FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${levhostname}/public ${levhostname} no $LECLIENT_LEKEYLENGTH"
+        						FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${levhostname}/public ${levhostname} no $LECLIENT_LEKEYLENGTH
         					fi
       					fi
       					LECHECK=$?
@@ -707,7 +706,7 @@ deploycert() {
           					ls -lah /usr/local/nginx/conf/ssl/${levhostname}/${levhostname}-leunified.crt
           					echo
           					echo "installcert populate /root/.le/${levhostname}/${levhostname}.conf"
-          					/usr/local/bin/le installcert ${levhostname} /usr/local/nginx/conf/ssl/${levhostname}/${levhostname}/cer /usr/local/nginx/conf/ssl/${levhostname}/${levhostname}.key /usr/local/nginx/conf/ssl/${levhostname}/ca.cer /usr/bin/ngxreload
+          					$LECLIENT_LEBIN installcert ${levhostname} /usr/local/nginx/conf/ssl/${levhostname}/${levhostname}/cer /usr/local/nginx/conf/ssl/${levhostname}/${levhostname}.key /usr/local/nginx/conf/ssl/${levhostname}/ca.cer /usr/bin/ngxreload
           					echo
         					fi
 					   
@@ -725,7 +724,7 @@ deploycert() {
         					/usr/bin/nprestart
       					fi # LECHECK
     					else
-      						cecho "/usr/local/bin/le not found" $boldgreen
+      						cecho "$LECLIENT_LEBIN not found" $boldgreen
     					fi  
   					fi #LECLIENT_LE
   					
@@ -873,7 +872,7 @@ CFF
 renewcert() {
 
   	if [[ "$LECLIENT_LE" = [yY] || "$LECLIENT_OFFICIAL" != [yY] ]]; then
-    	if [ -f /usr/local/bin/le ]; then
+    	if [ -f $LECLIENT_LEBIN ]; then
 			echo
 			read -ep "Enter the nginx vhost domain you want to renew SSL cert for: " levhostname
 			echo
@@ -945,19 +944,19 @@ renewcert() {
 			lemsgdns
       		if [[ "$TOPLEVEL" = [yY] ]]; then
         		if [[ "$LECLIENT_LESTAGE" = [yY] ]]; then
-          		echo "STAGE=1 FORCE=1 /usr/local/bin/le renew ${levhostname}"
-          		STAGE=1 FORCE=1 /usr/local/bin/le renew ${levhostname}
+          		echo "STAGE=1 FORCE=1 $LECLIENT_LEBIN renew ${levhostname}"
+          		STAGE=1 FORCE=1 $LECLIENT_LEBIN renew ${levhostname}
         		else
-          		echo "FORCE=1 /usr/local/bin/le renew ${levhostname}"
-          		FORCE=1 /usr/local/bin/le renew ${levhostname}
+          		echo "FORCE=1 $LECLIENT_LEBIN renew ${levhostname}"
+          		FORCE=1 $LECLIENT_LEBIN renew ${levhostname}
         		fi
       		else
         		if [[ "$LECLIENT_LESTAGE" = [yY] ]]; then
-          		echo "STAGE=1 FORCE=1 /usr/local/bin/le renew ${levhostname}"
-          		STAGE=1 FORCE=1 /usr/local/bin/le renew ${levhostname}
+          		echo "STAGE=1 FORCE=1 $LECLIENT_LEBIN renew ${levhostname}"
+          		STAGE=1 FORCE=1 $LECLIENT_LEBIN renew ${levhostname}
         		else
-          		echo "FORCE=1 /usr/local/bin/le renew ${levhostname}"
-          		FORCE=1 /usr/local/bin/le renew ${levhostname}
+          		echo "FORCE=1 $LECLIENT_LEBIN renew ${levhostname}"
+          		FORCE=1 $LECLIENT_LEBIN renew ${levhostname}
         		fi
       		fi
     	fi

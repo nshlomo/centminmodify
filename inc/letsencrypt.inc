@@ -104,9 +104,7 @@ FFG
 	echo
 	cecho "----------------------------------------------------" $boldyellow
 	cecho "simple shell based le client is installed at:" $boldgreen
-	cecho "/usr/local/bin/le.sh" $boldgreen
-	cecho "Symlinked to:" $boldgreen
-	cecho "/usr/local/bin/le" $boldgreen
+	cecho "$LECLIENT_LEBIN" $boldgreen
 	cecho "----------------------------------------------------" $boldyellow	
 	echo
 }

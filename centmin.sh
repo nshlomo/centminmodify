@@ -413,7 +413,7 @@ LECLIENT_OFFICIAL='y'        # use official letsencrypt.org client
 LECLIENT_LE='n'              # use 3rd party shell client https://github.com/Neilpang/le
 LECLIENT_LEKEYLENGTH='2048'  # 3rd party sheel client default key length
 LECLIENT_LESTAGE='y'         # 3rd party shell client STAGING API
-
+LECLIENT_LEBIN='/usr/local/bin/le.sh'
 ##################################
 ## Nginx SSL options
 # OpenSSL
