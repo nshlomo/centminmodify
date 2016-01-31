@@ -882,19 +882,19 @@ renewcert() {
 			lemsgdns
       		if [[ "$TOPLEVEL" = [yY] ]]; then
         		if [[ "$LECLIENT_LESTAGE" = [yY] ]]; then
-          		echo "STAGE=1 FORCE=1 /usr/local/bin/le renew /home/nginx/domains/${levhostname}/public ${levhostname} www.${levhostname} $LECLIENT_LEKEYLENGTH"
-          		STAGE=1 FORCE=1 /usr/local/bin/le renew /home/nginx/domains/${levhostname}/public ${levhostname} www.${levhostname} $LECLIENT_LEKEYLENGTH
+          		echo "STAGE=1 FORCE=1 /usr/local/bin/le renew ${levhostname}"
+          		STAGE=1 FORCE=1 /usr/local/bin/le renew ${levhostname}
         		else
-          		echo "FORCE=1 /usr/local/bin/le renew /home/nginx/domains/${levhostname}/public ${levhostname} www.${levhostname} $LECLIENT_LEKEYLENGTH"
-          		FORCE=1 /usr/local/bin/le renew /home/nginx/domains/${levhostname}/public ${levhostname} www.${levhostname} $LECLIENT_LEKEYLENGTH
+          		echo "FORCE=1 /usr/local/bin/le renew ${levhostname}"
+          		FORCE=1 /usr/local/bin/le renew ${levhostname}
         		fi
       		else
         		if [[ "$LECLIENT_LESTAGE" = [yY] ]]; then
-          		echo "STAGE=1 FORCE=1 /usr/local/bin/le renew /home/nginx/domains/${levhostname}/public ${levhostname} no $LECLIENT_LEKEYLENGTH"
-          		STAGE=1 FORCE=1 /usr/local/bin/le renew /home/nginx/domains/${levhostname}/public ${levhostname} no $LECLIENT_LEKEYLENGTH
+          		echo "STAGE=1 FORCE=1 /usr/local/bin/le renew ${levhostname}"
+          		STAGE=1 FORCE=1 /usr/local/bin/le renew ${levhostname}
         		else
-          		echo "FORCE=1 /usr/local/bin/le renew /home/nginx/domains/${levhostname}/public ${levhostname} no $LECLIENT_LEKEYLENGTH"
-          		FORCE=1 /usr/local/bin/le renew /home/nginx/domains/${levhostname}/public ${levhostname} no $LECLIENT_LEKEYLENGTH
+          		echo "FORCE=1 /usr/local/bin/le renew ${levhostname}"
+          		FORCE=1 /usr/local/bin/le renew ${levhostname}
         		fi
       		fi
     	fi
