@@ -630,11 +630,21 @@ if [[ "$levhostssl" = [yY] ]]; then
       mkdir -p /home/nginx/domains/${vhostname}/public/.well-known/acme-challenge
       chown -R nginx:nginx /home/nginx/domains/${vhostname}/public/.well-known/acme-challenge
       if [[ "$TOPLEVEL" = [yY] ]]; then
-        echo "$LECLEINT_LEOPTS /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH"
-        $LECLEINT_LEOPTS /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH
+        if [[ "$LECLIENT_LESTAGE" = [yY] ]]; then
+          echo "STAGE=1 FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH"
+          STAGE=1 FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH
+        else
+          echo "$LECLEINT_LEOPTS /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH"
+          $LECLEINT_LEOPTS /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH
+        fi
       else
-        echo "$LECLEINT_LEOPTS /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH"
-        $LECLEINT_LEOPTS /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH
+        if [[ "$LECLIENT_LESTAGE" = [yY] ]]; then
+          echo "STAGE=1 FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH"
+          STAGE=1 FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH
+        else
+          echo "$LECLEINT_LEOPTS /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH"
+          $LECLEINT_LEOPTS /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH
+        fi
       fi
       LECHECK=$?
   
