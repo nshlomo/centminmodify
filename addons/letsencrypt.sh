@@ -12,8 +12,8 @@ CFCHECK_ENABLE='n'
 # Letsencrypt Client Options
 LECLIENT_OFFICIAL='y'        # use official letsencrypt.org client
 LECLIENT_LE='n'              # use 3rd party shell client https://github.com/Neilpang/le
-LECLIENT_LEKEYLENGTH='2048'  # 3rd party sheel client default key length
-LECLEINT_LEOPTS='STAGE=1'           # STAGE=1 and/or ACCOUNT_EMAIL=
+LECLIENT_LEKEYLENGTH='2048'  # 3rd party shell client default key length
+LECLIENT_LESTAGE='y'         # 3rd party shell client STAGING API
 ##################################################################
 CENTOSVER=$(awk '{ print $3 }' /etc/redhat-release)
 
@@ -623,11 +623,21 @@ deploycert() {
       					mkdir -p /home/nginx/domains/${vhostname}/public/.well-known/acme-challenge
       					chown -R nginx:nginx /home/nginx/domains/${vhostname}/public/.well-known/acme-challenge
       					if [[ "$TOPLEVEL" = [yY] ]]; then
-        					echo "$LECLEINT_LEOPTS /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH"
-        					$LECLEINT_LEOPTS /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH
+      						if [[ "$LECLIENT_LESTAGE" = [yY] ]]; then
+        						echo "STAGE=1 FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH"
+        						STAGE=1 FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH
+        					else
+        						echo "$LECLEINT_LEOPTS /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH"
+        						$LECLEINT_LEOPTS /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH
+        					fi
       					else
-        					echo "$LECLEINT_LEOPTS /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH"
-        					$LECLEINT_LEOPTS /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH
+      						if [[ "$LECLIENT_LESTAGE" = [yY] ]]; then
+        						echo "STAGE=1 FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH"
+        						STAGE=1 FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH
+        					else	
+        						echo "$LECLEINT_LEOPTS /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH"
+        						$LECLEINT_LEOPTS /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH
+        					fi
       					fi
       					LECHECK=$?
 					  
