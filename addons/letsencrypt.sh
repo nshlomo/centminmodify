@@ -620,48 +620,48 @@ deploycert() {
       					echo
       					cecho "obtaining Letsencrypt SSL certificate via simple shell le webroot authentication..." $boldgreen
       					echo
-      					mkdir -p /home/nginx/domains/${vhostname}/public/.well-known/acme-challenge
-      					chown -R nginx:nginx /home/nginx/domains/${vhostname}/public/.well-known/acme-challenge
+      					mkdir -p /home/nginx/domains/${levhostname}/public/.well-known/acme-challenge
+      					chown -R nginx:nginx /home/nginx/domains/${levhostname}/public/.well-known/acme-challenge
       					if [[ "$TOPLEVEL" = [yY] ]]; then
       						if [[ "$LECLIENT_LESTAGE" = [yY] ]]; then
-        						echo "STAGE=1 FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH"
-        						STAGE=1 FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH
+        						echo "STAGE=1 FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${levhostname}/public ${levhostname} www.${levhostname} $LECLIENT_LEKEYLENGTH"
+        						STAGE=1 FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${levhostname}/public ${levhostname} www.${levhostname} $LECLIENT_LEKEYLENGTH
         					else
-        						echo "FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH"
-        						FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH
+        						echo "FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${levhostname}/public ${levhostname} www.${levhostname} $LECLIENT_LEKEYLENGTH"
+        						FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${levhostname}/public ${levhostname} www.${levhostname} $LECLIENT_LEKEYLENGTH
         					fi
       					else
       						if [[ "$LECLIENT_LESTAGE" = [yY] ]]; then
-        						echo "STAGE=1 FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH"
-        						STAGE=1 FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH
+        						echo "STAGE=1 FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${levhostname}/public ${levhostname} no $LECLIENT_LEKEYLENGTH"
+        						STAGE=1 FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${levhostname}/public ${levhostname} no $LECLIENT_LEKEYLENGTH
         					else	
-        						echo "FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH"
-        						FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH
+        						echo "FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${levhostname}/public ${levhostname} no $LECLIENT_LEKEYLENGTH"
+        						FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${levhostname}/public ${levhostname} no $LECLIENT_LEKEYLENGTH
         					fi
       					fi
       					LECHECK=$?
 					  
       					if [[ "$LECHECK" = '0' ]]; then
         					# create nginx concatenated cert file
-        					if [[ -f /root/.le/${vhostname}/${vhostname}.cer && -f /root/.le/${vhostname}/ca.cer ]]; then
-          					ls -lah /root/.le/${vhostname}/
+        					if [[ -f /root/.le/${levhostname}/${levhostname}.cer && -f /root/.le/${levhostname}/ca.cer ]]; then
+          					ls -lah /root/.le/${levhostname}/
           					echo
-          					cat /root/.le/${vhostname}/${vhostname}.cer /root/.le/${vhostname}/ca.cer > /root/.le/${vhostname}/${vhostname}-unified.crt
-          					ls -lah /root/.le/${vhostname}/${vhostname}-unified.crt
+          					cat /root/.le/${levhostname}/${levhostname}.cer /root/.le/${levhostname}/ca.cer > /root/.le/${levhostname}/${levhostname}-unified.crt
+          					ls -lah /root/.le/${levhostname}/${levhostname}-unified.crt
           					echo
         					fi
 					   
         					# replace self signed ssl cert with letsencrypt ssl certificate and enable ssl stapling
         					# if letsencrypt webroot authentication was sUccessfully ran and SSL certificate obtained
         					# otherwise leave original self signed SSL certificates in place
-        					sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${vhostname}\/${vhostname}.crt|\/root\/.le\/${vhostname}\/${vhostname}-unified.crt|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
-        					sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${vhostname}\/${vhostname}.key|\/root\/.le\/${vhostname}\/${vhostname}.key|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
-        					sed -i "s|#resolver |resolver |" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
-        					sed -i "s|#resolver_timeout|resolver_timeout|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
-        					sed -i "s|#ssl_stapling on|ssl_stapling on|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
-        					sed -i "s|#ssl_stapling_verify|ssl_stapling_verify|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
-        					sed -i "s|#ssl_trusted_certificate|ssl_trusted_certificate|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
-        					sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${vhostname}\/${vhostname}-trusted.crt|\/root\/.le\/${vhostname}\/${vhostname}-unified.crt|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
+        					sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}.crt|\/root\/.le\/${levhostname}\/${levhostname}-unified.crt|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
+        					sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}.key|\/root\/.le\/${levhostname}\/${levhostname}.key|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
+        					sed -i "s|#resolver |resolver |" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
+        					sed -i "s|#resolver_timeout|resolver_timeout|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
+        					sed -i "s|#ssl_stapling on|ssl_stapling on|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
+        					sed -i "s|#ssl_stapling_verify|ssl_stapling_verify|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
+        					sed -i "s|#ssl_trusted_certificate|ssl_trusted_certificate|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
+        					sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}-trusted.crt|\/root\/.le\/${levhostname}\/${levhostname}-unified.crt|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
         					/usr/bin/nprestart
       					fi # LECHECK
     					else
@@ -674,8 +674,8 @@ deploycert() {
     					echo
     					cecho "obtaining Letsencrypt SSL certificate via webroot authentication..." $boldgreen
     					echo
-						mkdir -p /home/nginx/domains/${vhostname}/public/.well-known/acme-challenge
-						chown -R nginx:nginx /home/nginx/domains/${vhostname}/public/.well-known/acme-challenge
+						mkdir -p /home/nginx/domains/${levhostname}/public/.well-known/acme-challenge
+						chown -R nginx:nginx /home/nginx/domains/${levhostname}/public/.well-known/acme-challenge
     					if [[ "$TOPLEVEL" = [yY] ]]; then
       						echo "/root/.local/share/letsencrypt/bin/letsencrypt -c /etc/letsencrypt/webroot.ini --user-agent $LE_USERAGENT --webroot-path /home/nginx/domains/${levhostname}/public -d ${levhostname} -d www.${levhostname}		 certonly"
       						/root/.local/share/letsencrypt/bin/letsencrypt -c /etc/letsencrypt/webroot.ini --user-agent $LE_USERAGENT --webroot-path /home/nginx/domains/${levhostname}/public -d ${levhostname} -d www.${levhostname} 		certonly
@@ -710,9 +710,9 @@ deploycert() {
       						fi
 			      
       			# cronjob error check and email send
-cat >> "/usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron" <<CFF
+cat >> "/usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron" <<CFF
     if [ \$? -ne 0 ]; then
-        sleep 1; echo -e "The Lets Encrypt SSL Certificate for ${vhostname} has not been renewed! \n \n" \$ERRORLOG | dos2unix | mail -s "Lets Encrypt Cert Alert" \$EMAIL
+        sleep 1; echo -e "The Lets Encrypt SSL Certificate for ${levhostname} has not been renewed! \n \n" \$ERRORLOG | dos2unix | mail -s "Lets Encrypt Cert Alert" \$EMAIL
       else
         /usr/bin/ngxreload
     fi
@@ -772,18 +772,18 @@ CFF
   					if [[ "$levhostssl" = [yY] ]] && [[ "$LECHECK" = '0' ]]; then
     					echo
     					if [[ "$LECLIENT_OFFICIAL" = [yY] ]]; then
-      					cecho "Letsencrypt SSL Certificate: /etc/letsencrypt/live/${vhostname}/cert.pem" $boldyellow
-      					cecho "Letsencrypt SSL Certificate Private Key: /etc/letsencrypt/live/${vhostname}/privkey.pem" $boldyellow
-      					cecho "Letsencrypt SSL Certificate Chain: /etc/letsencrypt/live/${vhostname}/chain.pem" $boldyellow
-      					cecho "Letsencrypt SSL Certificate Full Chain: /etc/letsencrypt/live/${vhostname}/fullchain.pem" $boldyellow
-      					cecho "Letsencrypt $vhostname cronjob file: /usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron" $boldyellow
+      					cecho "Letsencrypt SSL Certificate: /etc/letsencrypt/live/${levhostname}/cert.pem" $boldyellow
+      					cecho "Letsencrypt SSL Certificate Private Key: /etc/letsencrypt/live/${levhostname}/privkey.pem" $boldyellow
+      					cecho "Letsencrypt SSL Certificate Chain: /etc/letsencrypt/live/${levhostname}/chain.pem" $boldyellow
+      					cecho "Letsencrypt SSL Certificate Full Chain: /etc/letsencrypt/live/${levhostname}/fullchain.pem" $boldyellow
+      					cecho "Letsencrypt $vhostname cronjob file: /usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron" $boldyellow
     					fi #LECLIENT_OFFICIAL
     					if [[ "$LECLIENT_LE" = [yY] ]]; then
-      					cecho "Letsencrypt SSL Certificate: /root/.le/${vhostname}/${vhostname}.cer" $boldyellow
-      					cecho "Letsencrypt SSL Certificate Private Key: /root/.le/${vhostname}/${vhostname}.key" $boldyellow
-      					cecho "Letsencrypt SSL Certificate CSR: /root/.le/${vhostname}/${vhostname}.csr" $boldyellow
-      					cecho "Letsencrypt SSL Certificate Full Chain: /root/.le/${vhostname}/${vhostname}-unified.pem" $boldyellow
-      					cecho "Letsencrypt SSL simple shell le config: /root/.le/${vhostname}/${vhostname}.conf" $boldyellow
+      					cecho "Letsencrypt SSL Certificate: /root/.le/${levhostname}/${levhostname}.cer" $boldyellow
+      					cecho "Letsencrypt SSL Certificate Private Key: /root/.le/${levhostname}/${levhostname}.key" $boldyellow
+      					cecho "Letsencrypt SSL Certificate CSR: /root/.le/${levhostname}/${levhostname}.csr" $boldyellow
+      					cecho "Letsencrypt SSL Certificate Full Chain: /root/.le/${levhostname}/${levhostname}-unified.pem" $boldyellow
+      					cecho "Letsencrypt SSL simple shell le config: /root/.le/${levhostname}/${levhostname}.conf" $boldyellow
     					fi #LECLIENT_LE
   					fi 
 				fi
@@ -808,27 +808,121 @@ CFF
 
 ##################################################################
 renewcert() {
-	if [[ -f /etc/letsencrypt/webroot.ini && -f /root/.local/share/letsencrypt/bin/letsencrypt ]]; then
-		echo
-		read -ep "Enter the nginx vhost domain you want to renew SSL cert for: " levhostname
-		echo
-		if [ -f "/usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron" ]; then
-			lemsgdns			
-			echo "renewing existing letsencrypt SSL certificate"
-			echo "for $levhostname"
-			/bin/bash /usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron
+
+  	if [[ "$LECLIENT_LE" = [yY] || "$LECLIENT_OFFICIAL" != [yY] ]]; then
+    	if [ -f /usr/local/bin/le ]; then
 			echo
+			read -ep "Enter the nginx vhost domain you want to renew SSL cert for: " levhostname
+			echo
+
+  			# check if entered vhostname is top level domain or a subdomain if top level, need the ssl certificate
+  			# to also cover www. version of the top level domain vhostname via a multi-domain SAN LE ssl certificate
+  			TOPLEVELCHECK=$(dig soa $levhostname | grep -v ^\; | grep SOA | awk '{print $1}' | sed 's/\.$//')
+  			if [[ "$CFCHECK_ENABLE" = [yY] ]]; then
+  				# check if domain is behind Cloudflare proxies as Letsencrypt doesn't work if Cloudflare is in
+  				# front of your intended domain server
+  				CFCHECK=$(dig +short -t NS $levhostname | grep cloudflare.com)
+  				if [[ "$CFCHECK" ]]; then
+    				echo
+    				cecho "!! $levhostname seems to be using Cloudflare DNS !!" $boldyellow
+    				cecho "If you're using Cloudflare caching, you will" $boldyellow
+    				cecho "need to temporarily disable it for Letsencrypt" $boldyellow
+    				cecho "SSL validation. Note auto renewal will not work" $boldyellow
+    				cecho "as Cloudflare cache would need to be disabled each time" $boldyellow
+  				fi
+  			fi
+  			if [[ "$TOPLEVELCHECK" = "$levhostname" ]]; then
+    			# top level domain
+    			TOPLEVEL=y
+  			elif [[ -z "$TOPLEVELCHECK" ]]; then
+    			# vhost dns not setup
+    			TOPLEVEL=z
+  			else
+    			# subdomain or non top level domain
+    			TOPLEVEL=n
+  			fi
+  			echo
+  			if [[ "$TOPLEVEL" = [yY] ]]; then
+    			VHOST_ACHECK=$(dig -t A +short @8.8.8.8 $levhostname)
+    			VHOST_AWWWCHECK=$(dig -t A +short @8.8.8.8 www.$levhostname | grep -v $levhostname)
+  			else
+    			VHOST_ACHECK=$(dig -t A +short @8.8.8.8 $levhostname)
+  			fi
+  			echo
+  			if [[ "$TOPLEVEL" = [yY] ]]; then
+    			cecho "$levhostname is a top level domain" $boldyellow  
+    			if [ "$VHOST_ACHECK" ]; then
+      			cecho "your server IP address: $CNIP" $boldyellow
+      			cecho "current DNS A record IP address for $levhostname is: $VHOST_ACHECK" $boldyellow
+    			else
+      			cecho "your server IP address: $CNIP" $boldyellow
+      			cecho "current DNS A record IP address for $levhostname is: $VHOST_ACHECK" $boldyellow
+      			cecho "!! Error: missing DNS A record for $levhostname" $boldyellow
+    			fi
+    			if [ "$VHOST_AWWWCHECK" ]; then
+      			cecho "current DNS A record IP address for www.$levhostname is: $VHOST_AWWWCHECK" $boldyellow
+    			else
+      			cecho "current DNS A record IP address for www.$levhostname is: $VHOST_AWWWCHECK" $boldyellow
+      			cecho "!! Error: missing DNS A record for www.$levhostname" $boldyellow
+    			fi
+  			elif [[ "$TOPLEVEL" = 'z' ]]; then
+    			cecho "!! Error: $levhostname DNS records not found or setup properly yet or $levhostname invalid" $boldyellow
+  			else
+    			cecho "$levhostname is not a top level domain" $boldyellow
+    			if [ "$VHOST_ACHECK" ]; then
+      			cecho "your server IP address: $CNIP" $boldyellow
+      			cecho "current DNS A record IP address for $levhostname is: $VHOST_ACHECK" $boldyellow
+    			else
+      			cecho "current DNS A record IP address for $levhostname is: $VHOST_ACHECK" $boldyellow
+      			cecho "!! Error: missing DNS A record for $levhostname" $boldyellow
+    			fi
+  			fi
+  			echo
+
+			lemsgdns
+      		if [[ "$TOPLEVEL" = [yY] ]]; then
+        		if [[ "$LECLIENT_LESTAGE" = [yY] ]]; then
+          		echo "STAGE=1 FORCE=1 /usr/local/bin/le renew /home/nginx/domains/${levhostname}/public ${levhostname} www.${levhostname} $LECLIENT_LEKEYLENGTH"
+          		STAGE=1 FORCE=1 /usr/local/bin/le renew /home/nginx/domains/${levhostname}/public ${levhostname} www.${levhostname} $LECLIENT_LEKEYLENGTH
+        		else
+          		echo "FORCE=1 /usr/local/bin/le renew /home/nginx/domains/${levhostname}/public ${levhostname} www.${levhostname} $LECLIENT_LEKEYLENGTH"
+          		FORCE=1 /usr/local/bin/le renew /home/nginx/domains/${levhostname}/public ${levhostname} www.${levhostname} $LECLIENT_LEKEYLENGTH
+        		fi
+      		else
+        		if [[ "$LECLIENT_LESTAGE" = [yY] ]]; then
+          		echo "STAGE=1 FORCE=1 /usr/local/bin/le renew /home/nginx/domains/${levhostname}/public ${levhostname} no $LECLIENT_LEKEYLENGTH"
+          		STAGE=1 FORCE=1 /usr/local/bin/le renew /home/nginx/domains/${levhostname}/public ${levhostname} no $LECLIENT_LEKEYLENGTH
+        		else
+          		echo "FORCE=1 /usr/local/bin/le renew /home/nginx/domains/${levhostname}/public ${levhostname} no $LECLIENT_LEKEYLENGTH"
+          		FORCE=1 /usr/local/bin/le renew /home/nginx/domains/${levhostname}/public ${levhostname} no $LECLIENT_LEKEYLENGTH
+        		fi
+      		fi
+    	fi
+    fi
+
+	if [[ "$LECLIENT_OFFICIAL" = [yY] && "$LECLIENT_LE" = [nN] ]]; then
+		if [[ -f /etc/letsencrypt/webroot.ini && -f /root/.local/share/letsencrypt/bin/letsencrypt ]]; then
+			echo
+			read -ep "Enter the nginx vhost domain you want to renew SSL cert for: " levhostname
+			echo
+			if [ -f "/usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron" ]; then
+				lemsgdns			
+				echo "renewing existing letsencrypt SSL certificate"
+				echo "for $levhostname"
+				/bin/bash /usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron
+				echo
+			else
+				echo
+				echo "! Error: $levhostname auto renew cron file missing"
+				echo "/usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron not found"
+				echo
+			fi
 		else
 			echo
-			echo "! Error: $levhostname auto renew cron file missing"
-			echo "/usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron not found"
-			echo
+			echo "! Error: letsencrypt client is not installed or setup properly"
+			echo "  please run first:"
+			echo "         $0 setup"		
 		fi
-	else
-		echo
-		echo "! Error: letsencrypt client is not installed or setup properly"
-		echo "  please run first:"
-		echo "         $0 setup"		
 	fi
 }
 
