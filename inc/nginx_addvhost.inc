@@ -612,22 +612,26 @@ if [[ "$levhostssl" = [yY] ]]; then
         if [[ -f /root/.le/${vhostname}/${vhostname}.cer && -f /root/.le/${vhostname}/ca.cer ]]; then
           ls -lah /root/.le/${vhostname}/
           echo
-          cat /root/.le/${vhostname}/${vhostname}.cer /root/.le/${vhostname}/ca.cer > /root/.le/${vhostname}/${vhostname}-unified.crt
-          ls -lah /root/.le/${vhostname}/${vhostname}-unified.crt
+          echo "create /root/.le/${vhostname}/${vhostname}-leunified.crt"
+          cat /root/.le/${vhostname}/${vhostname}.cer /root/.le/${vhostname}/ca.cer > /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}-leunified.crt
+          ls -lah /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}-leunified.crt
+          echo
+          echo "installcert populate /root/.le/${vhostname}/${vhostname}.conf"
+          /usr/local/bin/le installcert ${vhostname} /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}/cer /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}.key /usr/local/nginx/conf/ssl/${vhostname}/ca.cer /usr/bin/ngxreload
           echo
         fi
    
         # replace self signed ssl cert with letsencrypt ssl certificate and enable ssl stapling
         # if letsencrypt webroot authentication was sUccessfully ran and SSL certificate obtained
         # otherwise leave original self signed SSL certificates in place
-        sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${vhostname}\/${vhostname}.crt|\/root\/.le\/${vhostname}\/${vhostname}-unified.crt|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
-        sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${vhostname}\/${vhostname}.key|\/root\/.le\/${vhostname}\/${vhostname}.key|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
+        sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${vhostname}\/${vhostname}.crt|\/usr\/local\/nginx\/conf\/ssl\/${vhostname}\/${vhostname}-leunified.crt|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
+        sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${vhostname}\/${vhostname}.key|\/usr\/local\/nginx\/conf\/ssl\/${vhostname}\/${vhostname}.key|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
         sed -i "s|#resolver |resolver |" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
         sed -i "s|#resolver_timeout|resolver_timeout|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
         sed -i "s|#ssl_stapling on|ssl_stapling on|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
         sed -i "s|#ssl_stapling_verify|ssl_stapling_verify|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
         sed -i "s|#ssl_trusted_certificate|ssl_trusted_certificate|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
-        sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${vhostname}\/${vhostname}-trusted.crt|\/root\/.le\/${vhostname}\/${vhostname}-unified.crt|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
+        sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${vhostname}\/${vhostname}-trusted.crt|\/usr\/local\/nginx\/conf\/ssl\/${vhostname}\/${vhostname}-leunified.crt|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
         /usr/bin/nprestart
       fi # LECHECK
     else

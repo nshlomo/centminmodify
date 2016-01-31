@@ -702,22 +702,26 @@ deploycert() {
         					if [[ -f /root/.le/${levhostname}/${levhostname}.cer && -f /root/.le/${levhostname}/ca.cer ]]; then
           					ls -lah /root/.le/${levhostname}/
           					echo
-          					cat /root/.le/${levhostname}/${levhostname}.cer /root/.le/${levhostname}/ca.cer > /root/.le/${levhostname}/${levhostname}-unified.crt
-          					ls -lah /root/.le/${levhostname}/${levhostname}-unified.crt
+          					echo "create /root/.le/${levhostname}/${levhostname}-leunified.crt"
+          					cat /root/.le/${levhostname}/${levhostname}.cer /root/.le/${levhostname}/ca.cer > /usr/local/nginx/conf/ssl/${levhostname}/${levhostname}-leunified.crt
+          					ls -lah /usr/local/nginx/conf/ssl/${levhostname}/${levhostname}-leunified.crt
+          					echo
+          					echo "installcert populate /root/.le/${levhostname}/${levhostname}.conf"
+          					/usr/local/bin/le installcert ${levhostname} /usr/local/nginx/conf/ssl/${levhostname}/${levhostname}/cer /usr/local/nginx/conf/ssl/${levhostname}/${levhostname}.key /usr/local/nginx/conf/ssl/${levhostname}/ca.cer /usr/bin/ngxreload
           					echo
         					fi
 					   
         					# replace self signed ssl cert with letsencrypt ssl certificate and enable ssl stapling
         					# if letsencrypt webroot authentication was sUccessfully ran and SSL certificate obtained
         					# otherwise leave original self signed SSL certificates in place
-        					sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}.crt|\/root\/.le\/${levhostname}\/${levhostname}-unified.crt|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
-        					sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}.key|\/root\/.le\/${levhostname}\/${levhostname}.key|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
+        					sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}.crt|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}-leunified.crt|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
+        					sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}.key|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}.key|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
         					sed -i "s|#resolver |resolver |" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
         					sed -i "s|#resolver_timeout|resolver_timeout|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
         					sed -i "s|#ssl_stapling on|ssl_stapling on|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
         					sed -i "s|#ssl_stapling_verify|ssl_stapling_verify|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
         					sed -i "s|#ssl_trusted_certificate|ssl_trusted_certificate|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
-        					sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}-trusted.crt|\/root\/.le\/${levhostname}\/${levhostname}-unified.crt|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
+        					sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}-trusted.crt|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}-leunified.crt|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
         					/usr/bin/nprestart
       					fi # LECHECK
     					else
@@ -731,8 +735,8 @@ deploycert() {
     					echo
     					cecho "obtaining Letsencrypt SSL certificate via webroot authentication..." $boldgreen
     					echo
-						mkdir -p /home/nginx/domains/${vhostname}/public/.well-known/acme-challenge
-						chown -R nginx:nginx /home/nginx/domains/${vhostname}/public/.well-known/acme-challenge
+						mkdir -p /home/nginx/domains/${levhostname}/public/.well-known/acme-challenge
+						chown -R nginx:nginx /home/nginx/domains/${levhostname}/public/.well-known/acme-challenge
     					if [[ "$TOPLEVEL" = [yY] ]]; then
       						echo "/root/.local/share/letsencrypt/bin/letsencrypt -c /etc/letsencrypt/webroot.ini --user-agent $LE_USERAGENT --webroot-path /home/nginx/domains/${levhostname}/public -d ${levhostname} -d www.${levhostname}		 certonly"
       						/root/.local/share/letsencrypt/bin/letsencrypt -c /etc/letsencrypt/webroot.ini --user-agent $LE_USERAGENT --webroot-path /home/nginx/domains/${levhostname}/public -d ${levhostname} -d www.${levhostname} 		certonly
@@ -767,9 +771,9 @@ deploycert() {
       						fi
 			      
       			# cronjob error check and email send
-cat >> "/usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron" <<CFF
+cat >> "/usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron" <<CFF
     if [ \$? -ne 0 ]; then
-        sleep 1; echo -e "The Lets Encrypt SSL Certificate for ${vhostname} has not been renewed! \n \n" \$ERRORLOG | dos2unix | mail -s "Lets Encrypt Cert Alert" \$EMAIL
+        sleep 1; echo -e "The Lets Encrypt SSL Certificate for ${levhostname} has not been renewed! \n \n" \$ERRORLOG | dos2unix | mail -s "Lets Encrypt Cert Alert" \$EMAIL
       else
         /usr/bin/ngxreload
     fi
