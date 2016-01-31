@@ -1407,7 +1407,7 @@ if [[ "$levhostssl" = [yY] ]]; then
           ls -lah /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}-leunified.crt
           echo
           echo "installcert populate /root/.le/${vhostname}/${vhostname}.conf"
-          $LECLIENT_LEBIN installcert ${vhostname} /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}.cer /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}.key /usr/local/nginx/conf/ssl/${vhostname}/ca.cer /usr/bin/ngxreload
+          $LECLIENT_LEBIN installcert ${vhostname} /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}.cer /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}-le.key /usr/local/nginx/conf/ssl/${vhostname}/ca.cer /usr/bin/ngxreload
           echo
         fi
    
@@ -1559,11 +1559,11 @@ if [[ "$vhostssl" = [yY] ]]; then
       cecho "Letsencrypt $vhostname cronjob file: /usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron" $boldyellow
     fi #LECLIENT_OFFICIAL
     if [[ "$LECLIENT_LE" = [yY] ]]; then
-      cecho "Letsencrypt SSL Certificate: /root/.le/${vhostname}/${vhostname}.cer" $boldyellow
-      cecho "Letsencrypt SSL Certificate Private Key: /root/.le/${vhostname}/${vhostname}.key" $boldyellow
-      cecho "Letsencrypt SSL Certificate CSR: /root/.le/${vhostname}/${vhostname}.csr" $boldyellow
-      cecho "Letsencrypt SSL Certificate Full Chain: /root/.le/${vhostname}/${vhostname}-unified.pem" $boldyellow
-      cecho "Letsencrypt SSL simple shell le config: /root/.le/${vhostname}/${vhostname}.conf" $boldyellow
+      cecho "Letsencrypt SSL Certificate: /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}.cer" $boldyellow
+      cecho "Letsencrypt SSL Certificate Private Key: /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}-le.key" $boldyellow
+      cecho "Letsencrypt SSL Certificate CSR: /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}.csr" $boldyellow
+      cecho "Letsencrypt SSL Certificate Full Chain: /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}-unified.pem" $boldyellow
+      cecho "Letsencrypt SSL simple shell le config: /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}.conf" $boldyellow
     fi #LECLIENT_LE
   fi  
 fi
