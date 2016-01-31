@@ -633,7 +633,7 @@ if [[ "$levhostssl" = [yY] ]]; then
         echo "$LECLEINT_LEOPTS /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH"
         $LECLEINT_LEOPTS /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH
       else
-        echo "$LECLEINT_LEOPTS /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} $LECLIENT_LEKEYLENGTH"
+        echo "$LECLEINT_LEOPTS /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH"
         $LECLEINT_LEOPTS /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH
       fi
       LECHECK=$?
