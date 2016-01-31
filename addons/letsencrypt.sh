@@ -706,7 +706,7 @@ deploycert() {
           					ls -lah /usr/local/nginx/conf/ssl/${levhostname}/${levhostname}-leunified.crt
           					echo
           					echo "installcert populate /root/.le/${levhostname}/${levhostname}.conf"
-          					$LECLIENT_LEBIN installcert ${levhostname} /usr/local/nginx/conf/ssl/${levhostname}/${levhostname}/cer /usr/local/nginx/conf/ssl/${levhostname}/${levhostname}.key /usr/local/nginx/conf/ssl/${levhostname}/ca.cer /usr/bin/ngxreload
+          					$LECLIENT_LEBIN installcert ${levhostname} /usr/local/nginx/conf/ssl/${levhostname}/${levhostname}.cer /usr/local/nginx/conf/ssl/${levhostname}/${levhostname}.key /usr/local/nginx/conf/ssl/${levhostname}/ca.cer /usr/bin/ngxreload
           					echo
         					fi
 					   

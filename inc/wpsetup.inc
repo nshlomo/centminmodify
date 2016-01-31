@@ -1407,7 +1407,7 @@ if [[ "$levhostssl" = [yY] ]]; then
           ls -lah /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}-leunified.crt
           echo
           echo "installcert populate /root/.le/${vhostname}/${vhostname}.conf"
-          $LECLIENT_LEBIN installcert ${vhostname} /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}/cer /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}.key /usr/local/nginx/conf/ssl/${vhostname}/ca.cer /usr/bin/ngxreload
+          $LECLIENT_LEBIN installcert ${vhostname} /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}.cer /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}.key /usr/local/nginx/conf/ssl/${vhostname}/ca.cer /usr/bin/ngxreload
           echo
         fi
    
