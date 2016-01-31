@@ -10,8 +10,8 @@ CFCHECK_ENABLE='n'
 
 ##################################
 # Letsencrypt Client Options
-LECLIENT_OFFICIAL='y'        # use official letsencrypt.org client
-LECLIENT_LE='n'              # use 3rd party shell client https://github.com/Neilpang/le
+LECLIENT_OFFICIAL='n'        # use official letsencrypt.org client
+LECLIENT_LE='y'              # use 3rd party shell client https://github.com/Neilpang/le
 LECLIENT_LEKEYLENGTH='2048'  # 3rd party shell client default key length
 LECLIENT_LESTAGE='y'         # 3rd party shell client STAGING API
 ##################################################################
@@ -527,7 +527,6 @@ lemsgdns() {
 
 ##################################################################
 deploycert() {
-	if [[ -f /etc/letsencrypt/webroot.ini && -f /root/.local/share/letsencrypt/bin/letsencrypt ]]; then
 		echo
 		read -ep "Enter the nginx vhost domain you want to SSL cert setup for: " levhostname			
 		echo
@@ -614,6 +613,8 @@ deploycert() {
 				# obtain LE ssl certificate to replace selfsigned
 				# SSL certificate
 				if [[ "$levhostssl" = [yY] ]]; then
+  					
+  					# leclientsetup
 
   					if [[ "$LECLIENT_LE" = [yY] || "$LECLIENT_OFFICIAL" != [yY] ]]; then
     					if [ -f /usr/local/bin/le ]; then
@@ -665,17 +666,18 @@ deploycert() {
         					/usr/bin/nprestart
       					fi # LECHECK
     					else
-      					cecho "/usr/local/bin/le not found" $boldgreen
+      						cecho "/usr/local/bin/le not found" $boldgreen
     					fi  
-  					fi #LECLIENT_OFFICIAL
-
+  					fi #LECLIENT_LE
+  					
   					if [[ "$LECLIENT_OFFICIAL" = [yY] && "$LECLIENT_LE" = [nN] ]]; then
+  					if [[ -f /etc/letsencrypt/webroot.ini && -f /root/.local/share/letsencrypt/bin/letsencrypt ]]; then
   					if [ -f /root/.local/share/letsencrypt/bin/letsencrypt ]; then
     					echo
     					cecho "obtaining Letsencrypt SSL certificate via webroot authentication..." $boldgreen
     					echo
-						mkdir -p /home/nginx/domains/${levhostname}/public/.well-known/acme-challenge
-						chown -R nginx:nginx /home/nginx/domains/${levhostname}/public/.well-known/acme-challenge
+						mkdir -p /home/nginx/domains/${vhostname}/public/.well-known/acme-challenge
+						chown -R nginx:nginx /home/nginx/domains/${vhostname}/public/.well-known/acme-challenge
     					if [[ "$TOPLEVEL" = [yY] ]]; then
       						echo "/root/.local/share/letsencrypt/bin/letsencrypt -c /etc/letsencrypt/webroot.ini --user-agent $LE_USERAGENT --webroot-path /home/nginx/domains/${levhostname}/public -d ${levhostname} -d www.${levhostname}		 certonly"
       						/root/.local/share/letsencrypt/bin/letsencrypt -c /etc/letsencrypt/webroot.ini --user-agent $LE_USERAGENT --webroot-path /home/nginx/domains/${levhostname}/public -d ${levhostname} -d www.${levhostname} 		certonly
@@ -697,10 +699,10 @@ deploycert() {
 						
 							echo "if [[ -f "\$CERT" ]]; then" >> /usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron
 							echo "  expiry=\$(openssl x509 -enddate -noout -in \$CERT | cut -d'=' -f2 | awk '{print \$2 " " \$1 " " \$4}')" >> /usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron
-							echo "  epochExpirydate=\$(date -d"\${expiry}" +%s)" >> /usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron
+							echo "  epochExpirydate=\$(date -d\"\${expiry}\" +%s)" >> /usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron
 							echo "  epochToday=\$(date +%s)" >> /usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron
 							echo "  secondsToExpire=\$(echo \${epochExpirydate} - \${epochToday} | bc)" >> /usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron
-							echo "  daysToExpire=\$(echo "\${secondsToExpire} / 60 / 60 / 24" | bc)" >> /usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron
+							echo "  daysToExpire=\$(echo \"\${secondsToExpire} / 60 / 60 / 24\" | bc)" >> /usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron
 							echo "  if [ "\$daysToExpire" -lt '30' ]; then" >> /usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron
 					
       						if [[ "$TOPLEVEL" = [yY] ]]; then
@@ -710,9 +712,9 @@ deploycert() {
       						fi
 			      
       			# cronjob error check and email send
-cat >> "/usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron" <<CFF
+cat >> "/usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron" <<CFF
     if [ \$? -ne 0 ]; then
-        sleep 1; echo -e "The Lets Encrypt SSL Certificate for ${levhostname} has not been renewed! \n \n" \$ERRORLOG | dos2unix | mail -s "Lets Encrypt Cert Alert" \$EMAIL
+        sleep 1; echo -e "The Lets Encrypt SSL Certificate for ${vhostname} has not been renewed! \n \n" \$ERRORLOG | dos2unix | mail -s "Lets Encrypt Cert Alert" \$EMAIL
       else
         /usr/bin/ngxreload
     fi
@@ -753,9 +755,17 @@ CFF
     					fi # LECHECK
   					else
     					cecho "/root/.local/share/letsencrypt/bin/letsencrypt not found" $boldgreen
-  					fi  # line 618
-  					fi  # line 617
-				fi # line 615
+  					fi  # line 620
+				fi # line 572
+
+	else
+		# line 486
+		echo
+		echo "! Error: letsencrypt client is not installed or setup properly"
+		echo "  please run first:"
+		echo "         $0 setup"
+	fi # line 619
+	fi  # line 673 LECLIENT_OFFICIAL
 			
 				if [[ "$vhostssl" = [yY] ]]; then
   					echo
@@ -797,13 +807,7 @@ CFF
 			echo "ssl vhost not found: /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf"
 			echo			
 		fi # line 490
-	else
-		# line 486
-		echo
-		echo "! Error: letsencrypt client is not installed or setup properly"
-		echo "  please run first:"
-		echo "         $0 setup"
-	fi # line 486
+
 }
 
 ##################################################################
