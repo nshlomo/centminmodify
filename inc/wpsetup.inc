@@ -1359,7 +1359,63 @@ fi
 # obtain LE ssl certificate to replace selfsigned
 # SSL certificate
 if [[ "$levhostssl" = [yY] ]]; then
-  leclientsetup
+  if [[ "$LECLIENT_OFFICIAL" = [yY] && "$LECLIENT_LE" = [nN] ]]; then
+    leclientsetup
+  elif [[ "$LECLIENT_LE" = [yY] || "$LECLIENT_OFFICIAL" != [yY] ]]; then
+    simpleleclientsetup
+  else
+    echo
+    echo "Error: Please only set only one variable to = 'y' :"
+    echo "either LECLIENT_LE or LECLIENT_OFFICIAL NOT both"
+    echo
+    exit
+  fi
+
+  if [[ "$LECLIENT_LE" = [yY] || "$LECLIENT_OFFICIAL" != [yY] ]]; then
+    if [ -f /usr/local/bin/le ]; then
+      echo
+      cecho "obtaining Letsencrypt SSL certificate via simple shell le webroot authentication..." $boldgreen
+      echo
+      mkdir -p /home/nginx/domains/${vhostname}/public/.well-known/acme-challenge
+      chown -R nginx:nginx /home/nginx/domains/${vhostname}/public/.well-known/acme-challenge
+      if [[ "$TOPLEVEL" = [yY] ]]; then
+        echo "le issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH"
+        le issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH
+      else
+        echo "le issue /home/nginx/domains/${vhostname}/public ${vhostname} $LECLIENT_LEKEYLENGTH"
+        le issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH
+      fi
+      LECHECK=$?
+  
+      if [[ "$LECHECK" = '0' ]]; then
+        # create nginx concatenated cert file
+        if [[ -f /root/.le/${vhostname}/${vhostname}.cer && -f /root/.le/${vhostname}/ca.cer ]]; then
+          ls -lah /root/.le/${vhostname}/
+          echo
+          cat /root/.le/${vhostname}/${vhostname}.cer /root/.le/${vhostname}/ca.cer > /root/.le/${vhostname}/${vhostname}-unified.crt
+          ls -lah /root/.le/${vhostname}/${vhostname}-unified.crt
+          echo
+        fi
+   
+        # replace self signed ssl cert with letsencrypt ssl certificate and enable ssl stapling
+        # if letsencrypt webroot authentication was sUccessfully ran and SSL certificate obtained
+        # otherwise leave original self signed SSL certificates in place
+        sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${vhostname}\/${vhostname}.crt|\/root\/.le\/${vhostname}\/${vhostname}-unified.crt|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
+        sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${vhostname}\/${vhostname}.key|\/root\/.le\/${vhostname}\/${vhostname}.key|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
+        sed -i "s|#resolver |resolver |" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
+        sed -i "s|#resolver_timeout|resolver_timeout|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
+        sed -i "s|#ssl_stapling on|ssl_stapling on|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
+        sed -i "s|#ssl_stapling_verify|ssl_stapling_verify|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
+        sed -i "s|#ssl_trusted_certificate|ssl_trusted_certificate|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
+        sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${vhostname}\/${vhostname}-trusted.crt|\/root\/.le\/${vhostname}\/${vhostname}-unified.crt|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
+        /usr/bin/nprestart
+      fi # LECHECK
+    else
+      cecho "/usr/local/bin/le not found" $boldgreen
+    fi  
+  fi #LECLIENT_OFFICIAL
+
+  if [[ "$LECLIENT_OFFICIAL" = [yY] && "$LECLIENT_LE" = [nN] ]]; then
   if [ -f /root/.local/share/letsencrypt/bin/letsencrypt ]; then
     echo
     cecho "obtaining Letsencrypt SSL certificate via webroot authentication..." $boldgreen
@@ -1443,8 +1499,9 @@ CFF
     fi # LECHECK
   else
     cecho "/root/.local/share/letsencrypt/bin/letsencrypt not found" $boldgreen
-  fi  
-fi
+  fi  # /root/.local/share/letsencrypt/bin/letsencrypt
+  fi #LECLIENT_OFFICIAL
+fi #levhostssl
 
 if [ -f /tmp/setupwp.log ]; then
   rm -rf /tmp/setupwp.log
@@ -1480,11 +1537,20 @@ if [[ "$vhostssl" = [yY] ]]; then
   cecho "Backup SSL CSR File: /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}-backup.csr" $boldyellow  
   if [[ "$levhostssl" = [yY] ]] && [[ "$LECHECK" = '0' ]]; then
     echo
-    cecho "Letsencrypt SSL Certificate: /etc/letsencrypt/live/${vhostname}/cert.pem" $boldyellow
-    cecho "Letsencrypt SSL Certificate Private Key: /etc/letsencrypt/live/${vhostname}/privkey.pem" $boldyellow
-    cecho "Letsencrypt SSL Certificate Chain: /etc/letsencrypt/live/${vhostname}/chain.pem" $boldyellow
-    cecho "Letsencrypt SSL Certificate Full Chain: /etc/letsencrypt/live/${vhostname}/fullchain.pem" $boldyellow
-    cecho "Letsencrypt $vhostname cronjob file: /usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron" $boldyellow
+    if [[ "$LECLIENT_OFFICIAL" = [yY] ]]; then
+      cecho "Letsencrypt SSL Certificate: /etc/letsencrypt/live/${vhostname}/cert.pem" $boldyellow
+      cecho "Letsencrypt SSL Certificate Private Key: /etc/letsencrypt/live/${vhostname}/privkey.pem" $boldyellow
+      cecho "Letsencrypt SSL Certificate Chain: /etc/letsencrypt/live/${vhostname}/chain.pem" $boldyellow
+      cecho "Letsencrypt SSL Certificate Full Chain: /etc/letsencrypt/live/${vhostname}/fullchain.pem" $boldyellow
+      cecho "Letsencrypt $vhostname cronjob file: /usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron" $boldyellow
+    fi #LECLIENT_OFFICIAL
+    if [[ "$LECLIENT_LE" = [yY] ]]; then
+      cecho "Letsencrypt SSL Certificate: /root/.le/${vhostname}/${vhostname}.cer" $boldyellow
+      cecho "Letsencrypt SSL Certificate Private Key: /root/.le/${vhostname}/${vhostname}.key" $boldyellow
+      cecho "Letsencrypt SSL Certificate CSR: /root/.le/${vhostname}/${vhostname}.csr" $boldyellow
+      cecho "Letsencrypt SSL Certificate Full Chain: /root/.le/${vhostname}/${vhostname}-unified.pem" $boldyellow
+      cecho "Letsencrypt SSL simple shell le config: /root/.le/${vhostname}/${vhostname}.conf" $boldyellow
+    fi #LECLIENT_LE
   fi  
 fi
 echo

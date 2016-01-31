@@ -26,6 +26,40 @@ python_setup() {
 	fi
 }
 
+simpleleclientsetup() {
+	# setup and install https://github.com/Neilpang/le instead
+	
+	# find last github commit date
+	if [ -d /root/tools/le ]; then
+		LECOMMIT_DATE=$(cd /root/tools/le; date -d @$(git log -n1 --format="%at") +%Y%m%d)
+	fi
+
+	echo
+	cecho "installing or updating simple shell based le client" $boldgreen
+	echo
+	mkdir -p /root/tools
+	cd /root/tools
+	if [ -d /root/tools/le ]; then
+		rm -rf le
+		git clone https://github.com/Neilpang/le
+	else
+		git clone https://github.com/Neilpang/le
+	fi
+	cd le
+	./le.sh install
+	which le
+	le
+
+	echo
+	cecho "----------------------------------------------------" $boldyellow
+	cecho "simple shell based le client is installed at:" $boldgreen
+	cecho "/usr/local/bin/le.sh" $boldgreen
+	cecho "Symlinked to:" $boldgreen
+	cecho "/usr/local/bin/le" $boldgreen
+	cecho "----------------------------------------------------" $boldyellow	
+	echo
+}
+
 leclientsetup() {
 	# build letsencrypt version timestamp
 	# find last github commit date to compare with current client version number

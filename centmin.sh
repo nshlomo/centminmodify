@@ -454,6 +454,12 @@ NGINXCONFDIR="${NGINXDIR}/conf"
 NGINXBACKUPDIR='/usr/local/nginxbackup'
 
 ##################################
+# Letsencrypt Client Options
+LECLIENT_OFFICIAL='y'        # use official letsencrypt.org client
+LECLIENT_LE='n'              # use 3rd party shell client https://github.com/Neilpang/le
+LECLIENT_LEKEYLENGTH='2048'  # 3rd party sheel client default key length
+
+##################################
 ## Nginx SSL options
 # OpenSSL
 NOSOURCEOPENSSL='y'        # set to 'y' to disable OpenSSL source compile for system default YUM package setup
