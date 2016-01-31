@@ -1453,10 +1453,10 @@ if [[ "$levhostssl" = [yY] ]]; then
 
 echo "if [[ -f "\$CERT" ]]; then" >> /usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron
 echo "  expiry=\$(openssl x509 -enddate -noout -in \$CERT | cut -d'=' -f2 | awk '{print \$2 " " \$1 " " \$4}')" >> /usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron
-echo "  epochExpirydate=\$(date -d"\${expiry}" +%s)" >> /usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron
+echo "  epochExpirydate=\$(date -d\"\${expiry}" +%s)\" >> /usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron
 echo "  epochToday=\$(date +%s)" >> /usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron
 echo "  secondsToExpire=\$(echo \${epochExpirydate} - \${epochToday} | bc)" >> /usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron
-echo "  daysToExpire=\$(echo "\${secondsToExpire} / 60 / 60 / 24" | bc)" >> /usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron
+echo "  daysToExpire=\$(echo \"\${secondsToExpire} / 60 / 60 / 24\" | bc)" >> /usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron
 echo "  if [ "\$daysToExpire" -lt '30' ]; then" >> /usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron
 
       if [[ "$TOPLEVEL" = [yY] ]]; then
