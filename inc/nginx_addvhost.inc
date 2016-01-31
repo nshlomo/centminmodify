@@ -589,11 +589,11 @@ if [[ "$levhostssl" = [yY] ]]; then
       mkdir -p /home/nginx/domains/${vhostname}/public/.well-known/acme-challenge
       chown -R nginx:nginx /home/nginx/domains/${vhostname}/public/.well-known/acme-challenge
       if [[ "$TOPLEVEL" = [yY] ]]; then
-        echo "le issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH"
-        le issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH
+        echo "$LECLEINT_LEOPTS /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH"
+        $LECLEINT_LEOPTS /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH
       else
-        echo "le issue /home/nginx/domains/${vhostname}/public ${vhostname} $LECLIENT_LEKEYLENGTH"
-        le issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH
+        echo "$LECLEINT_LEOPTS /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} $LECLIENT_LEKEYLENGTH"
+        $LECLEINT_LEOPTS /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH
       fi
       LECHECK=$?
   

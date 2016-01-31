@@ -13,6 +13,7 @@ CFCHECK_ENABLE='n'
 LECLIENT_OFFICIAL='y'        # use official letsencrypt.org client
 LECLIENT_LE='n'              # use 3rd party shell client https://github.com/Neilpang/le
 LECLIENT_LEKEYLENGTH='2048'  # 3rd party sheel client default key length
+LECLEINT_LEOPTS='STAGE=1'           # STAGE=1 and/or ACCOUNT_EMAIL=
 ##################################################################
 CENTOSVER=$(awk '{ print $3 }' /etc/redhat-release)
 
@@ -622,11 +623,11 @@ deploycert() {
       					mkdir -p /home/nginx/domains/${vhostname}/public/.well-known/acme-challenge
       					chown -R nginx:nginx /home/nginx/domains/${vhostname}/public/.well-known/acme-challenge
       					if [[ "$TOPLEVEL" = [yY] ]]; then
-        					echo "le issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH"
-        					le issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH
+        					echo "$LECLEINT_LEOPTS /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH"
+        					$LECLEINT_LEOPTS /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH
       					else
-        					echo "le issue /home/nginx/domains/${vhostname}/public ${vhostname} $LECLIENT_LEKEYLENGTH"
-        					le issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH
+        					echo "$LECLEINT_LEOPTS /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} $LECLIENT_LEKEYLENGTH"
+        					$LECLEINT_LEOPTS /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH
       					fi
       					LECHECK=$?
 					  
