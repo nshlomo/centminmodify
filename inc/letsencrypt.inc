@@ -46,9 +46,6 @@ simpleleclientsetup() {
 		git clone https://github.com/Neilpang/le
 	fi
 	cd le
-	./le.sh install
-	which le
-	le
 
 	if [ ! -f /root/.le/account.conf ]; then
 	cecho "setup general /root/.le/account.conf letsencrypt config file" $boldgreen
@@ -99,6 +96,10 @@ FFG
 		sed -i "s|foo@example.com|$letemail|" /root/.le/account.conf
 		echo
 	fi
+
+	./le.sh install
+	which le
+	le
 
 	echo
 	cecho "----------------------------------------------------" $boldyellow
