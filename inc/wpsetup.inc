@@ -1372,7 +1372,7 @@ if [[ "$levhostssl" = [yY] ]]; then
   fi
 
   if [[ "$LECLIENT_LE" = [yY] || "$LECLIENT_OFFICIAL" != [yY] ]]; then
-    if [ -f /usr/local/bin/le ]; then
+    if [ -f "$LECLIENT_LEBIN" ]; then
       echo
       cecho "obtaining Letsencrypt SSL certificate via simple shell le webroot authentication..." $boldgreen
       echo
@@ -1380,19 +1380,19 @@ if [[ "$levhostssl" = [yY] ]]; then
       chown -R nginx:nginx /home/nginx/domains/${vhostname}/public/.well-known/acme-challenge
       if [[ "$TOPLEVEL" = [yY] ]]; then
         if [[ "$LECLIENT_LESTAGE" = [yY] ]]; then
-          echo "STAGE=1 FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH"
-          STAGE=1 FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH
+          echo "STAGE=1 FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH"
+          STAGE=1 FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH
         else
-          echo "FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH"
-          FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH
+          echo "FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH"
+          FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH
         fi
       else
         if [[ "$LECLIENT_LESTAGE" = [yY] ]]; then
-          echo "STAGE=1 FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH"
-          STAGE=1 FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH
+          echo "STAGE=1 FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH"
+          STAGE=1 FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH
         else
-          echo "FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH"
-          FORCE=1 /usr/local/bin/le issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH
+          echo "FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH"
+          FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH
         fi
       fi
       LECHECK=$?
@@ -1407,7 +1407,7 @@ if [[ "$levhostssl" = [yY] ]]; then
           ls -lah /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}-leunified.crt
           echo
           echo "installcert populate /root/.le/${vhostname}/${vhostname}.conf"
-          /usr/local/bin/le installcert ${vhostname} /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}/cer /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}.key /usr/local/nginx/conf/ssl/${vhostname}/ca.cer /usr/bin/ngxreload
+          $LECLIENT_LEBIN installcert ${vhostname} /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}/cer /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}.key /usr/local/nginx/conf/ssl/${vhostname}/ca.cer /usr/bin/ngxreload
           echo
         fi
    
@@ -1425,7 +1425,7 @@ if [[ "$levhostssl" = [yY] ]]; then
         /usr/bin/nprestart
       fi # LECHECK
     else
-      cecho "/usr/local/bin/le not found" $boldgreen
+      cecho "$LECLIENT_LEBIN not found" $boldgreen
     fi  
   fi #LECLIENT_OFFICIAL
 
