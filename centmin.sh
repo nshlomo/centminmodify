@@ -730,6 +730,10 @@ fi
 if [ -f "${CM_INSTALLDIR}/inc/z_custom.inc" ]; then
     source "${CM_INSTALLDIR}/inc/z_custom.inc"
 fi
+
+if [[ "$LECLIENT_LE" = [yY] ]]; then
+    LECLIENT_OFFICIAL='n'
+fi
 ###############################################################
 # FUNCTIONS
 
