@@ -714,7 +714,7 @@ deploycert() {
         					# if letsencrypt webroot authentication was sUccessfully ran and SSL certificate obtained
         					# otherwise leave original self signed SSL certificates in place
         					sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}.crt|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}-leunified.crt|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
-        					sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}.key|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}.key|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
+        					sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}.key|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}-le.key|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
         					sed -i "s|#resolver |resolver |" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
         					sed -i "s|#resolver_timeout|resolver_timeout|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
         					sed -i "s|#ssl_stapling on|ssl_stapling on|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
@@ -849,7 +849,7 @@ CFF
     					if [[ "$LECLIENT_LE" = [yY] ]]; then
       					cecho "Letsencrypt SSL Certificate: /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}.cer" $boldyellow
       					cecho "Letsencrypt SSL Certificate Private Key: /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}-le.key" $boldyellow
-      					cecho "Letsencrypt SSL Certificate CSR: /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}.csr" $boldyellow
+      					cecho "Letsencrypt SSL Certificate CSR: /root/.le/${vhostname}/${vhostname}.csr" $boldyellow
       					cecho "Letsencrypt SSL Certificate Full Chain: /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}-unified.pem" $boldyellow
       					cecho "Letsencrypt SSL simple shell le config: /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}.conf" $boldyellow
     					fi #LECLIENT_LE
