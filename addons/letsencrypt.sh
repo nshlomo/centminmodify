@@ -706,7 +706,7 @@ deploycert() {
           					ls -lah /usr/local/nginx/conf/ssl/${levhostname}/${levhostname}-leunified.crt
           					echo
           					echo "installcert populate /root/.le/${levhostname}/${levhostname}.conf"
-          					$LECLIENT_LEBIN installcert ${levhostname} /usr/local/nginx/conf/ssl/${levhostname}/${levhostname}.cer /usr/local/nginx/conf/ssl/${levhostname}/${levhostname}.key /usr/local/nginx/conf/ssl/${levhostname}/ca.cer /usr/bin/ngxreload
+          					$LECLIENT_LEBIN installcert ${levhostname} /usr/local/nginx/conf/ssl/${levhostname}/${levhostname}.cer /usr/local/nginx/conf/ssl/${levhostname}/${levhostname}-le.key /usr/local/nginx/conf/ssl/${levhostname}/ca.cer /usr/bin/ngxreload
           					echo
         					fi
 					   
@@ -847,11 +847,11 @@ CFF
       					cecho "Letsencrypt $vhostname cronjob file: /usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron" $boldyellow
     					fi #LECLIENT_OFFICIAL
     					if [[ "$LECLIENT_LE" = [yY] ]]; then
-      					cecho "Letsencrypt SSL Certificate: /root/.le/${levhostname}/${levhostname}.cer" $boldyellow
-      					cecho "Letsencrypt SSL Certificate Private Key: /root/.le/${levhostname}/${levhostname}.key" $boldyellow
-      					cecho "Letsencrypt SSL Certificate CSR: /root/.le/${levhostname}/${levhostname}.csr" $boldyellow
-      					cecho "Letsencrypt SSL Certificate Full Chain: /root/.le/${levhostname}/${levhostname}-unified.pem" $boldyellow
-      					cecho "Letsencrypt SSL simple shell le config: /root/.le/${levhostname}/${levhostname}.conf" $boldyellow
+      					cecho "Letsencrypt SSL Certificate: /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}.cer" $boldyellow
+      					cecho "Letsencrypt SSL Certificate Private Key: /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}-le.key" $boldyellow
+      					cecho "Letsencrypt SSL Certificate CSR: /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}.csr" $boldyellow
+      					cecho "Letsencrypt SSL Certificate Full Chain: /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}-unified.pem" $boldyellow
+      					cecho "Letsencrypt SSL simple shell le config: /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}.conf" $boldyellow
     					fi #LECLIENT_LE
   					fi 
 				fi
