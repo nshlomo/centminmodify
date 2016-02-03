@@ -12,6 +12,16 @@ DEBUG='n'
 # CURRENTCOUNTRY=$(curl -s ipinfo.io/$CURRENTIP/country)
 CENTMINLOGDIR='/root/centminlogs'
 DT=`date +"%d%m%y-%H%M%S"`
+
+CFCHECK_ENABLE='n'
+
+##################################
+# Letsencrypt Client Options
+LECLIENT_OFFICIAL='y'        # use official letsencrypt.org client
+LECLIENT_LE='n'              # use 3rd party shell client https://github.com/Neilpang/le
+LECLIENT_LEKEYLENGTH='2048'  # 3rd party shell client default key length
+LECLIENT_LESTAGE='y'         # 3rd party shell client STAGING API
+LECLIENT_LEBIN='/usr/local/bin/le.sh'
 ################################################################
 # Setup Colours
 black='\E[30;40m'
@@ -45,6 +55,22 @@ echo -e "$color$message" ; $Reset
 return
 }
 ###############################################################
+if [ -f "${CM_INSTALLDIR}/inc/custom_config.inc" ]; then
+    source "inc/custom_config.inc"
+fi
+
+if [ -f "${CONFIGSCANBASE}/custom_config.inc" ]; then
+    # default is at /etc/centminmod/custom_config.inc
+    source "${CONFIGSCANBASE}/custom_config.inc"
+fi
+
+if [ -f "${CM_INSTALLDIR}/inc/z_custom.inc" ]; then
+    source "${CM_INSTALLDIR}/inc/z_custom.inc"
+fi
+
+if [[ "$LECLIENT_LE" = [yY] ]]; then
+    LECLIENT_OFFICIAL='n'
+fi
 
 if [[ "$(nginx -V 2>&1 | grep -Eo 'with-http_v2_module')" = 'with-http_v2_module' ]]; then
   HTTPTWO=y
