@@ -269,6 +269,89 @@ python_setup() {
   fi
 }
 
+simpleleclientsetup() {
+  # setup and install https://github.com/Neilpang/le instead
+  
+  # find last github commit date
+  if [ -d /root/tools/le ]; then
+    LECOMMIT_DATE=$(cd /root/tools/le; date -d @$(git log -n1 --format="%at") +%Y%m%d)
+  fi
+
+  echo
+  cecho "installing or updating simple shell based le client" $boldgreen
+  echo
+  mkdir -p /root/tools
+  cd /root/tools
+  if [ -d /root/tools/le ]; then
+    rm -rf le
+    git clone https://github.com/Neilpang/le
+  else
+    git clone https://github.com/Neilpang/le
+  fi
+  cd le
+
+  if [ ! -f /root/.le/account.conf ]; then
+  cecho "setup general /root/.le/account.conf letsencrypt config file" $boldgreen
+  touch /root/.le/account.conf
+cat > "/root/.le/account.conf" <<FFG
+ACCOUNT_EMAIL=foo@example.com
+#STAGE=1
+FFG
+  fi
+
+  if [[ "$(grep 'foo@example.com' /root/.le/account.conf)" ]]; then
+    echo
+    cecho "Registering an account with Letsencrypt" $boldgreen
+    echo "You only do this once, so that Letsencrypt can notify &"
+    echo "contact you via email regarding your SSL certificates"
+    read -ep "Enter your email address to setup Letsencrypt account: " letemail
+
+    if [ -z "$letemail" ]; then
+      echo
+      echo "!! Error: email address is empty"
+    else
+      echo
+      echo "You are registering $letemail address for Letsencrypt"
+    fi
+
+    # check email domain has MX records which letsencrypt client checks for
+    CHECKLE_MXEMAIL=$(echo "$letemail" | awk -F '@' '{print $2}')
+    while [[ -z "$(dig -t MX +short @8.8.8.8 $CHECKLE_MXEMAIL)" || -z "$letemail" ]]; do
+      echo
+      if [[ -z "$(dig -t MX +short @8.8.8.8 $CHECKLE_MXEMAIL)" ]]; then
+        echo "!! Error: $letemail does not have a DNS MX record !!"
+      fi
+      if [ -z "$letemail" ]; then
+        echo "!! Error: email address is empty"
+      fi
+      echo
+      read -ep "Re-Enter your email address to setup Letsencrypt account: " letemail
+      if [ -z "$letemail" ]; then
+        echo
+        echo "!! Error: email address is empty"
+      else
+        echo
+        echo "You are registering $letemail address for Letsencrypt"
+      fi
+      CHECKLE_MXEMAIL=$(echo "$letemail" | awk -F '@' '{print $2}')
+    done
+
+    sed -i "s|foo@example.com|$letemail|" /root/.le/account.conf
+    echo
+  fi
+
+  ./le.sh install
+  which le
+  le
+
+  echo
+  cecho "----------------------------------------------------" $boldyellow
+  cecho "simple shell based le client is installed at:" $boldgreen
+  cecho "$LECLIENT_LEBIN" $boldgreen
+  cecho "----------------------------------------------------" $boldyellow  
+  echo
+}
+
 leclientsetup() {
   # build letsencrypt version timestamp
   # find last github commit date to compare with current client version number
@@ -914,7 +997,7 @@ if [[ "$levhostssl" = [yY] ]]; then
   fi
 
   if [[ "$LECLIENT_LE" = [yY] || "$LECLIENT_OFFICIAL" != [yY] ]]; then
-    if [ -f "$LECLIENT_LEBIN "]; then
+    if [ -f "$LECLIENT_LEBIN" ]; then
       echo
       cecho "obtaining Letsencrypt SSL certificate via simple shell le webroot authentication..." $boldgreen
       echo
