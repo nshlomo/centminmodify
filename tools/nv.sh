@@ -12,6 +12,11 @@ DEBUG='n'
 # CURRENTCOUNTRY=$(curl -s ipinfo.io/$CURRENTIP/country)
 CENTMINLOGDIR='/root/centminlogs'
 DT=`date +"%d%m%y-%H%M%S"`
+CURL_TIMEOUTS=' --max-time 5 --connect-timeout 5'
+DIR_TMP=/svr-setup
+OPENSSL_VERSION=$(awk -F "'" /'^OPENSSL_VERSION/ {print $2}' $CUR_DIR/centmin.sh)
+# CURRENTIP=$(echo $SSH_CLIENT | awk '{print $1}')
+# CURRENTCOUNTRY=$(curl -s${CURL_TIMEOUTS} ipinfo.io/$CURRENTIP/country)
 
 CFCHECK_ENABLE='n'
 
@@ -77,6 +82,8 @@ if [[ "$(nginx -V 2>&1 | grep -Eo 'with-http_v2_module')" = 'with-http_v2_module
   LISTENOPT='ssl http2'
   COMP_HEADER='#spdy_headers_comp 5'
   SPDY_HEADER='#add_header Alternate-Protocol  443:npn-spdy/3;'
+  HTTPTWO_MAXFIELDSIZE='http2_max_field_size 16k;'
+  HTTPTWO_MAXHEADERSIZE='http2_max_header_size 32k;'
 else
   HTTPTWO=n
   LISTENOPT='ssl spdy'
@@ -789,8 +796,16 @@ fi
 
 if [[ "$vhostssl" = [yY] ]]; then
 
-if [[ "$(nginx -V 2>&1 | grep LibreSSL | head -n1)" ]]; then
-  CHACHACIPHERS='ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:'
+  if [ -f "${DIR_TMP}/openssl-${OPENSSL_VERSION}/crypto/chacha20poly1305/chacha20.c" ]; then
+      # check /svr-setup/openssl-1.0.2f/crypto/chacha20poly1305/chacha20.c exists
+      OPEENSSL_CFPATCHED='y'
+  fi
+if [[ "$(nginx -V 2>&1 | grep LibreSSL | head -n1)" ]] || [[ "$OPEENSSL_CFPATCHED" = [yY] ]]; then
+  if [ -f "${DIR_TMP}/openssl-${OPENSSL_VERSION}/crypto/chacha20poly1305/chacha20.c" ]; then
+    CHACHACIPHERS='EECDH+CHACHA20-draft:EECDH+CHACHA20:'
+  else
+    CHACHACIPHERS='EECDH+CHACHA20:'
+  fi
 else
   CHACHACIPHERS=""
 fi
@@ -818,6 +833,9 @@ server {
 #include /usr/local/nginx/conf/pagespeedhandler.conf;
 #include /usr/local/nginx/conf/pagespeedstatslog.conf;
 
+  #add_header X-Frame-Options SAMEORIGIN;
+  #add_header X-Xss-Protection "1; mode=block" always;
+  #add_header X-Content-Type-Options "nosniff" always;
   # limit_conn limit_per_ip 16;
   # ssi  on;
 
@@ -825,8 +843,13 @@ server {
   error_log /home/nginx/domains/$vhostname/log/error.log;
 
   root /home/nginx/domains/$vhostname/public;
+  # uncomment cloudflare.conf include if using cloudflare for
+  # server and/or vhost site
+  #include /usr/local/nginx/conf/cloudflare.conf;
+  include /usr/local/nginx/conf/503include-main.conf;
 
   location / {
+  include /usr/local/nginx/conf/503include-only.conf;
 
 # block common exploits, sql injections etc
 #include /usr/local/nginx/conf/block.conf;
@@ -876,6 +899,8 @@ server {
   ssl_certificate_key  /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}.key;
   include /usr/local/nginx/conf/ssl_include.conf;
 
+  $HTTPTWO_MAXFIELDSIZE
+  $HTTPTWO_MAXHEADERSIZE
   # mozilla recommended
   ssl_ciphers ${CHACHACIPHERS}ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA:!CAMELLIA:!DES-CBC3-SHA;
   ssl_prefer_server_ciphers   on;
@@ -887,8 +912,9 @@ server {
   # exclude subdomains
   #add_header Public-Key-Pins 'pin-sha256="$(cat /usr/local/nginx/conf/ssl/${vhostname}/hpkp-info-primary-pin.txt)"; pin-sha256="$(cat /usr/local/nginx/conf/ssl/${vhostname}/hpkp-info-secondary-pin.txt)"; max-age=86400';
   #add_header Strict-Transport-Security "max-age=31536000; includeSubdomains;";
-  #add_header  X-Content-Type-Options "nosniff";
-  #add_header X-Frame-Options DENY;
+  #add_header X-Frame-Options SAMEORIGIN;
+  #add_header X-Xss-Protection "1; mode=block" always;
+  #add_header X-Content-Type-Options "nosniff" always;
   $COMP_HEADER;
   ssl_buffer_size 1400;
   ssl_session_tickets on;
@@ -912,8 +938,13 @@ server {
   error_log /home/nginx/domains/$vhostname/log/error.log;
 
   root /home/nginx/domains/$vhostname/public;
+  # uncomment cloudflare.conf include if using cloudflare for
+  # server and/or vhost site
+  #include /usr/local/nginx/conf/cloudflare.conf;
+  include /usr/local/nginx/conf/503include-main.conf;
 
   location / {
+  include /usr/local/nginx/conf/503include-only.conf;
 
 # block common exploits, sql injections etc
 #include /usr/local/nginx/conf/block.conf;
@@ -963,6 +994,9 @@ server {
 #include /usr/local/nginx/conf/pagespeedhandler.conf;
 #include /usr/local/nginx/conf/pagespeedstatslog.conf;
 
+  #add_header X-Frame-Options SAMEORIGIN;
+  #add_header X-Xss-Protection "1; mode=block" always;
+  #add_header X-Content-Type-Options "nosniff" always;
   # limit_conn limit_per_ip 16;
   # ssi  on;
 
@@ -970,8 +1004,13 @@ server {
   error_log /home/nginx/domains/$vhostname/log/error.log;
 
   root /home/nginx/domains/$vhostname/public;
+  # uncomment cloudflare.conf include if using cloudflare for
+  # server and/or vhost site
+  #include /usr/local/nginx/conf/cloudflare.conf;
+  include /usr/local/nginx/conf/503include-main.conf;
 
   location / {
+  include /usr/local/nginx/conf/503include-only.conf;
 
 # block common exploits, sql injections etc
 #include /usr/local/nginx/conf/block.conf;

@@ -183,9 +183,9 @@ wpinstall
   WPN=$RANDOM
   WPNB=$RANDOM
   WPADMINUSER="z${WPSALT}wp${WPNB}"
-  WPADMINUSER=$(echo $WPADMINUSER | sed -e 's|\/||g')
+  WPADMINUSER=$(echo $WPADMINUSER | sed -e 's|\/||g' -e 's|\+||g')
   WPADMINPASS="z${WPSALTB}wps${WPN}"
-  WPADMINPASS=$(echo $WPADMINPASS | sed -e 's|\/||g')
+  WPADMINPASS=$(echo $WPADMINPASS | sed -e 's|\/||g' -e 's|\+||g')
  
 if [ ! -d /root/tools ]; then
   mkdir -p /root/tools
@@ -273,13 +273,13 @@ if [[ "$wpsubdirinstall" = [yY] ]]; then
   SUBDIR_INSTALL=y
   read -ep "Enter subdirectory name i.e. /blog enter = blog ? : " wpsubdir_value
   WPSUBDIR="/$wpsubdir_value"
-  SUBDIR_INCLUDE="include /usr/local/nginx/conf/wpsecure_${vhostname}.conf;"
+  SUBDIR_INCLUDE="include /usr/local/nginx/conf/wpincludes/${vhostname}/wpsecure_${vhostname}.conf;"
   NONSUBDIR_INCLUDE=""
 elif [[ "$wpsubdirinstall" != [yY] ]]; then
   SUBDIR_INSTALL=n
   WPSUBDIR=""
   SUBDIR_INCLUDE=""
-  NONSUBDIR_INCLUDE="include /usr/local/nginx/conf/wpsecure_${vhostname}.conf;"
+  NONSUBDIR_INCLUDE="include /usr/local/nginx/conf/wpincludes/${vhostname}/wpsecure_${vhostname}.conf;"
 fi
 
 read -ep "Disable Auto Generated WP Admin Username / Password ? [y/n]: " disableautogen
@@ -313,7 +313,12 @@ if [[ "$disableautogen" = [yY] ]]; then
 fi
 
 read -ep "Enter email address for Admin User for Wordpress Installation: " WPADMINEMAIL
-read -ep "Do you want to install WP Cache Enabler Plugin instead of WP Super Cache ? (easier to setup) [y/n]: " cacheenabler
+echo
+cecho "Default is to install KeyCDN WP Cache Enabler Plugin" $boldyellow
+cecho "as it's more stable and reliable than WP Super Cache." $boldyellow
+cecho "To install KeyCDN Cache Enabler, answer = n to next question" $boldyellow
+echo
+read -ep "Do you want to install WP Super Cache instead ? [y/n]: " wpscache
 
 TESTEMAIL=$(echo "${WPADMINEMAIL}" |  grep '^[a-zA-Z0-9._%+-]*@[a-zA-Z0-9-]*[\.[a-zA-Z0-9]*]*[a-zA-Z0-9]$')
 # echo "$TESTEMAIL"
@@ -375,6 +380,12 @@ umask 027
 mkdir -p /home/nginx/domains/$vhostname/{public,private,log,backup}
 if [[ "$wpsubdirinstall" = [yY] ]]; then
   mkdir -p /home/nginx/domains/$vhostname/public/$wpsubdir_value
+fi
+if [ ! -f /usr/local/nginx/conf/wpincludes ]; then
+  mkdir -p /usr/local/nginx/conf/wpincludes
+fi
+if [ ! -f "/usr/local/nginx/conf/wpincludes/$vhostname" ]; then
+  mkdir -p "/usr/local/nginx/conf/wpincludes/$vhostname"
 fi
 
 if [[ "$PUREFTPD_DISABLED" = [nN] ]]; then
@@ -452,7 +463,7 @@ sed -i "s|fastcgi_param  SERVER_NAME        \$server_name;|fastcgi_param  SERVER
 ################################################################################
 # create wp enable enabler included files https://community.centminmod.com/posts/21220/
 
-cat > "/usr/local/nginx/conf/wpcacheenabler_${vhostname}.conf"<<HFA
+cat > "/usr/local/nginx/conf/wpincludes/${vhostname}/wpcacheenabler_${vhostname}.conf"<<HFA
     set \$cache_uri \$request_uri;
 
     # bypass cache if POST requests or URLs with a query string
@@ -598,8 +609,16 @@ fi
 
 if [[ "$vhostssl" = [yY] ]]; then
 
-if [[ "$(nginx -V 2>&1 | grep LibreSSL | head -n1)" ]]; then
-  CHACHACIPHERS='ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:'
+  if [ -f "${DIR_TMP}/openssl-${OPENSSL_VERSION}/crypto/chacha20poly1305/chacha20.c" ]; then
+      # check /svr-setup/openssl-1.0.2f/crypto/chacha20poly1305/chacha20.c exists
+      OPEENSSL_CFPATCHED='y'
+  fi
+if [[ "$(nginx -V 2>&1 | grep LibreSSL | head -n1)" ]] || [[ "$OPEENSSL_CFPATCHED" = [yY] ]]; then
+  if [ -f "${DIR_TMP}/openssl-${OPENSSL_VERSION}/crypto/chacha20poly1305/chacha20.c" ]; then
+    CHACHACIPHERS='EECDH+CHACHA20-draft:EECDH+CHACHA20:'
+  else
+    CHACHACIPHERS='EECDH+CHACHA20:'
+  fi
 else
   CHACHACIPHERS=""
 fi
@@ -640,10 +659,10 @@ server {
   # deny all;
   #}
 
-  #include /usr/local/nginx/conf/wpcacheenabler_${vhostname}.conf;
-  include /usr/local/nginx/conf/wpsupercache_${vhostname}.conf;
+  #include /usr/local/nginx/conf/wpincludes/${vhostname}/wpcacheenabler_${vhostname}.conf;
+  include /usr/local/nginx/conf/wpincludes/${vhostname}/wpsupercache_${vhostname}.conf;
   # https://community.centminmod.com/posts/18828/
-  #include /usr/local/nginx/conf/rediscache_${vhostname}.conf;  
+  #include /usr/local/nginx/conf/wpincludes/${vhostname}/rediscache_${vhostname}.conf;  
 
   location /$wpsubdir_value {
   $SUBDIR_INCLUDE
@@ -719,6 +738,8 @@ server {
   ssl_certificate_key  /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}.key;
   include /usr/local/nginx/conf/ssl_include.conf;
 
+  $HTTPTWO_MAXFIELDSIZE
+  $HTTPTWO_MAXHEADERSIZE
   # mozilla recommended
   ssl_ciphers ${CHACHACIPHERS}ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA:!CAMELLIA:!DES-CBC3-SHA;
   ssl_prefer_server_ciphers   on;
@@ -730,8 +751,9 @@ server {
   # exclude subdomains
   #add_header Public-Key-Pins 'pin-sha256="$(cat /usr/local/nginx/conf/ssl/${vhostname}/hpkp-info-primary-pin.txt)"; pin-sha256="$(cat /usr/local/nginx/conf/ssl/${vhostname}/hpkp-info-secondary-pin.txt)"; max-age=86400';
   #add_header Strict-Transport-Security "max-age=31536000; includeSubdomains;";
-  #add_header  X-Content-Type-Options "nosniff";
-  #add_header X-Frame-Options DENY;
+  #add_header X-Frame-Options SAMEORIGIN;
+  #add_header X-Xss-Protection "1; mode=block" always;
+  #add_header X-Content-Type-Options "nosniff" always;
   $COMP_HEADER;
   ssl_buffer_size 1400;
   ssl_session_tickets on;
@@ -748,6 +770,9 @@ server {
 #include /usr/local/nginx/conf/pagespeedhandler.conf;
 #include /usr/local/nginx/conf/pagespeedstatslog.conf;
 
+  #add_header X-Frame-Options SAMEORIGIN;
+  #add_header X-Xss-Protection "1; mode=block" always;
+  #add_header X-Content-Type-Options "nosniff" always;
   # limit_conn limit_per_ip 16;
   # ssi  on;
 
@@ -755,16 +780,20 @@ server {
   error_log /home/nginx/domains/$vhostname/log/error.log;
 
   root /home/nginx/domains/$vhostname/public;
+  # uncomment cloudflare.conf include if using cloudflare for
+  # server and/or vhost site
+  #include /usr/local/nginx/conf/cloudflare.conf;
+  include /usr/local/nginx/conf/503include-main.conf;
 
   # prevent access to ./directories and files
   #location ~ (?:^|/)\. {
   # deny all;
   #}
 
-  #include /usr/local/nginx/conf/wpcacheenabler_${vhostname}.conf;
-  include /usr/local/nginx/conf/wpsupercache_${vhostname}.conf;
+  #include /usr/local/nginx/conf/wpincludes/${vhostname}/wpcacheenabler_${vhostname}.conf;
+  include /usr/local/nginx/conf/wpincludes/${vhostname}/wpsupercache_${vhostname}.conf;
   # https://community.centminmod.com/posts/18828/
-  #include /usr/local/nginx/conf/rediscache_${vhostname}.conf;  
+  #include /usr/local/nginx/conf/wpincludes/${vhostname}/rediscache_${vhostname}.conf;  
 
   location /$wpsubdir_value {
   $SUBDIR_INCLUDE
@@ -848,10 +877,11 @@ server {
 
   root /home/nginx/domains/$vhostname/public;
 
-  #include /usr/local/nginx/conf/wpcacheenabler_${vhostname}.conf;
-  include /usr/local/nginx/conf/wpsupercache_${vhostname}.conf;
+
+  #include /usr/local/nginx/conf/wpincludes/${vhostname}/wpcacheenabler_${vhostname}.conf;
+  include /usr/local/nginx/conf/wpincludes/${vhostname}/wpsupercache_${vhostname}.conf;
   # https://community.centminmod.com/posts/18828/
-  #include /usr/local/nginx/conf/rediscache_${vhostname}.conf;  
+  #include /usr/local/nginx/conf/wpincludes/${vhostname}/rediscache_${vhostname}.conf;  
 
   location /$wpsubdir_value {
   $SUBDIR_INCLUDE
@@ -905,34 +935,238 @@ END
 
 fi
 
-cat > "/usr/local/nginx/conf/wpsecure_${vhostname}.conf" <<EEF
-# prepare for letsencrypt
-# https://community.centminmod.com/posts/17774/
-location ~ /.well-known {
-    location ~ /.well-known/acme-challenge/(.*) {
-            default_type text/plain;
-            charset off;
-    }
+cat > "/usr/local/nginx/conf/wpincludes/${vhostname}/wpsecure_${vhostname}.conf" <<EEF
+# prevent .zip, .gz, .tar, .bzip2 files from being accessed by default
+# impossible for centmin mod to know which wp backup plugins they installed
+# which may save backups to directories in wp-content/
+# such plugins may deploy .htaccess protection but that isn't supported in
+# nginx, so blocking access to these extensions is a workaround to cover all bases
+location ~* ^${WPSUBDIR}/(wp-content)/(.*?)\.(zip|gz|tar|bzip2|7z)\$ { deny all; }
+
+location ~ ^${WPSUBDIR}/wp-content/updraft { deny all; }
+
+location ~ ^${WPSUBDIR}/(wp-includes/js/tinymce/wp-tinymce.php) {
+  include /usr/local/nginx/conf/php.conf;
 }
 
 # Deny access to any files with a .php extension in the uploads directory
 # Works in sub-directory installs and also in multisite network
-location ~* /(?:uploads|files)/.*\.php\$ {
+location ~* ${WPSUBDIR}/(?:uploads|files)/.*\.php\$ {
 deny all;
 }
 
+# Whitelist Exception for https://wordpress.org/plugins/sparkpost/
+location ~ ^${WPSUBDIR}/wp-content/plugins/sparkpost/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/sendgrid-email-delivery-simplified/
+location ~ ^${WPSUBDIR}/wp-content/plugins/sendgrid-email-delivery-simplified/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/mailgun/
+location ~ ^${WPSUBDIR}/wp-content/plugins/mailgun/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/mailjet-for-wordpress/
+location ~ ^${WPSUBDIR}/wp-content/plugins/mailjet-for-wordpress/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/easy-wp-smtp/
+location ~ ^${WPSUBDIR}/wp-content/plugins/easy-wp-smtp/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/postman-smtp/
+location ~ ^${WPSUBDIR}/wp-content/plugins/postman-smtp/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/sendpress/
+location ~ ^${WPSUBDIR}/wp-content/plugins/sendpress/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/wp-mail-bank/
+location ~ ^${WPSUBDIR}/wp-content/plugins/wp-mail-bank/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/theme-check/
+location ~ ^${WPSUBDIR}/wp-content/plugins/theme-check/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/woocommerce/
+location ~ ^${WPSUBDIR}/wp-content/plugins/woocommerce/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/woocommerce-csvimport/
+location ~ ^${WPSUBDIR}/wp-content/plugins/woocommerce-csvimport/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/advanced-custom-fields/
+location ~ ^${WPSUBDIR}/wp-content/plugins/advanced-custom-fields/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/contact-form-7/
+location ~ ^${WPSUBDIR}/wp-content/plugins/contact-form-7/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/duplicator/
+location ~ ^${WPSUBDIR}/wp-content/plugins/duplicator/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/jetpack/
+location ~ ^${WPSUBDIR}/wp-content/plugins/jetpack/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/nextgen-gallery/
+location ~ ^${WPSUBDIR}/wp-content/plugins/nextgen-gallery/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/tinymce-advanced/
+location ~ ^${WPSUBDIR}/wp-content/plugins/tinymce-advanced/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/updraftplus/
+location ~ ^${WPSUBDIR}/wp-content/plugins/updraftplus/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/wordpress-importer/
+location ~ ^${WPSUBDIR}/wp-content/plugins/wordpress-importer/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/wordpress-seo/
+location ~ ^${WPSUBDIR}/wp-content/plugins/wordpress-seo/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/wpclef/
+location ~ ^${WPSUBDIR}/wp-content/plugins/wpclef/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/mailchimp-for-wp/
+location ~ ^${WPSUBDIR}/wp-content/plugins/mailchimp-for-wp/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/wp-optimize/
+location ~ ^${WPSUBDIR}/wp-content/plugins/wp-optimize/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/si-contact-form/
+location ~ ^${WPSUBDIR}/wp-content/plugins/si-contact-form/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/akismet/
+location ~ ^${WPSUBDIR}/wp-content/plugins/akismet/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/bbpress/
+location ~ ^${WPSUBDIR}/wp-content/plugins/bbpress/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/buddypress/
+location ~ ^${WPSUBDIR}/wp-content/plugins/buddypress/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/all-in-one-seo-pack/
+location ~ ^${WPSUBDIR}/wp-content/plugins/all-in-one-seo-pack/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/google-analytics-for-wordpress/
+location ~ ^${WPSUBDIR}/wp-content/plugins/google-analytics-for-wordpress/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/regenerate-thumbnails/
+location ~ ^${WPSUBDIR}/wp-content/plugins/regenerate-thumbnails/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/wp-pagenavi/
+location ~ ^${WPSUBDIR}/wp-content/plugins/wp-pagenavi/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/wordfence/
+location ~ ^${WPSUBDIR}/wp-content/plugins/wordfence/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/really-simple-captcha/
+location ~ ^${WPSUBDIR}/wp-content/plugins/really-simple-captcha/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/wp-pagenavi/
+location ~ ^${WPSUBDIR}/wp-content/plugins/wp-pagenavi/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/ml-slider/
+location ~ ^${WPSUBDIR}/wp-content/plugins/ml-slider/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/black-studio-tinymce-widget/
+location ~ ^${WPSUBDIR}/wp-content/plugins/black-studio-tinymce-widget/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/disable-comments/
+location ~ ^${WPSUBDIR}/wp-content/plugins/disable-comments/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for https://wordpress.org/plugins/better-wp-security/
+location ~ ^${WPSUBDIR}/wp-content/plugins/better-wp-security/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for http://wlmsocial.com/
+location ~ ^${WPSUBDIR}/wp-content/plugins/wlm-social/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
+# Whitelist Exception for mediagrid timthumb
+location ~ ^${WPSUBDIR}/wp-content/plugins/media-grid/classes/ {
+  include /usr/local/nginx/conf/php.conf;
+}
+
 # Block PHP files in content directory.
-location ~* /wp-content/.*\.php\$ {
+location ~* ${WPSUBDIR}/wp-content/.*\.php\$ {
   deny all;
 }
 
 # Block PHP files in includes directory.
-location ~* /wp-includes/.*\.php\$ {
+location ~* ${WPSUBDIR}/wp-includes/.*\.php\$ {
   deny all;
 }
 
 # Block PHP files in uploads, content, and includes directory.
-location ~* /(?:uploads|files|wp-content|wp-includes)/.*\.php\$ {
+location ~* ${WPSUBDIR}/(?:uploads|files|wp-content|wp-includes)/.*\.php\$ {
   deny all;
 }
 
@@ -952,11 +1186,11 @@ location ~* (w00tw00t) {
 return 444;
 }
 
-location ~* /(\.|wp-config\.php|wp-config\.txt|changelog\.txt|readme\.txt|readme\.html|license\.txt) { deny all; }
+location ~* ${WPSUBDIR}/(\.|wp-config\.php|wp-config\.txt|changelog\.txt|readme\.txt|readme\.html|license\.txt) { deny all; }
 EEF
 
 # WP super cache
-cat > "/usr/local/nginx/conf/wpsupercache_${vhostname}.conf" <<EFF
+cat > "/usr/local/nginx/conf/wpincludes/${vhostname}/wpsupercache_${vhostname}.conf" <<EFF
 set \$cache_uri \$request_uri;
 
 if (\$request_method = POST) { set \$cache_uri 'null cache'; }
@@ -969,7 +1203,7 @@ if (\$http_cookie ~* "comment_author|wordpress_[a-f0-9]+|wp-postpass|wordpress_l
 EFF
 
 # for nginx level redis cache
-cat > "/usr/local/nginx/conf/rediscache_${vhostname}.conf" <<XFF
+cat > "/usr/local/nginx/conf/wpincludes/${vhostname}/rediscache_${vhostname}.conf" <<XFF
 set \$skip_cache 0;
 
 # POST requests and urls with a query string should always go to PHP
@@ -1039,7 +1273,7 @@ REDISUPSTREAM_INCLUDECHECK=$(grep '\/usr\/local\/nginx\/conf\/redisupstream.conf
 if [[ -d "/home/nginx/domains/${vhostname}/public" ]]; then
 
   cecho "------------------------------------------------------------" $boldgreen
-  if [[ "$cacheenabler" = [yY] ]]; then
+  if [[ "$wpscache" != [yY] ]]; then
     cecho "Setup Wordpress + Cache Enabler for $vhostname" $boldyellow
   else
     cecho "Setup Wordpress + Super Cache for $vhostname" $boldyellow
@@ -1064,7 +1298,10 @@ if [[ -z "$(crontab -l 2>&1 | grep '\/${vhostname}/wp-cron.php')" ]]; then
     # making sure they do not run at very same time during cron scheduling
     DELAY=$(echo ${RANDOM:0:3})
     crontab -l > cronjoblist
+    mkdir -p /home/nginx/domains/${vhostname}/cronjobs
+    cp cronjoblist /home/nginx/domains/${vhostname}/cronjobs/cronjoblist-before-wp-cron.txt
     echo "*/15 * * * * sleep ${DELAY}s ; wget -O - -q -t 1 http://${vhostname}/wp-cron.php?doing_wp_cron=1 > /dev/null 2>&1" >> cronjoblist
+    cp cronjoblist /home/nginx/domains/${vhostname}/cronjobs/cronjoblist-after-wp-cron.txt
     crontab cronjoblist
     rm -rf cronjoblist
     crontab -l
@@ -1126,7 +1363,7 @@ if [[ "$cacheenabler" != [yY] ]]; then
   cecho "------------------------------------------------------------" $boldgreen
   # wp plugin install wp-widget-cache --activate --allow-root
   # cecho "------------------------------------------------------------" $boldgreen
-elif [[ "$cacheenabler" = [yY] ]]; then
+elif [[ "$wpscache" != [yY] ]]; then
   cecho "------------------------------------------------------------" $boldgreen
   wp plugin install wp-super-cache --allow-root
   cecho "------------------------------------------------------------" $boldgreen
@@ -1137,7 +1374,7 @@ elif [[ "$cacheenabler" = [yY] ]]; then
 fi
 
 # wp cache enabler
-if [[ "$cacheenabler" = [yY] ]]; then
+if [[ "$wpscache" != [yY] ]]; then
   cecho "------------------------------------------------------------" $boldgreen
   wp plugin install cache-enabler --activate --allow-root
   cecho "------------------------------------------------------------" $boldgreen 
@@ -1222,6 +1459,22 @@ fi # WPPLUGINS_ALL=y
 # remove hello plugin
 wp plugin uninstall hello --allow-root
 
+# allows user to add custom wp-cli commands after initiall install to
+# further customise their installation. you create a custom file at
+# /etc/centminmod/customwp_domain.com.inc where domain.com is the 
+# intended centmin.sh menu option 22 vhost site domain for your wp
+# installation. Then in that file add your wp-cli commands to the file
+# wrapped in a shell function named mywpcmds() { yourcode }. i.e. for
+# wp language install https://community.centminmod.com/posts/26045/
+# the below check will check for /etc/centminmod/customwp_domain.com.inc
+# file and then source include it into this routine and run the shell
+# function named mywpcmds which contains your custom wp-cli cmds that will
+# trigger and run
+if [ -f "${CONFIGSCANBASE}/customwp_${vhostname}.inc" ]; then
+    # default is at /etc/centminmod/customwp_${vhostname}.inc
+    source "${CONFIGSCANBASE}/customwp_${vhostname}.inc"
+    mywpcmds
+fi
 # update all plugins to make sure they are latest available
 wp plugin update --all --allow-root
 echo
@@ -1244,16 +1497,16 @@ if [ -f wp-content/plugins/tpc-memory-usage/css/tpcmem.css ]; then
   sed -i 's|(images\/|(..\/images\/|g' wp-content/plugins/tpc-memory-usage/css/tpcmem.css
 fi
 
-if [[ "$cacheenabler" = [yY] ]]; then
+if [[ "$wpscache" != [yY] ]]; then
     if [ -f "/usr/local/nginx/conf/conf.d/${vhostname}.conf" ]; then
-        sed -i "s|^  #include /usr/local/nginx/conf/wpcacheenabler_${vhostname}.conf|  include /usr/local/nginx/conf/wpcacheenabler_${vhostname}.conf|" /usr/local/nginx/conf/conf.d/${vhostname}.conf
-        sed -i "s|^  include /usr/local/nginx/conf/wpsupercache_${vhostname}.conf|  #include /usr/local/nginx/conf/wpsupercache_${vhostname}.conf|" /usr/local/nginx/conf/conf.d/${vhostname}.conf
+        sed -i "s|^  #include /usr/local/nginx/conf/wpincludes/${vhostname}/wpcacheenabler_${vhostname}.conf|  include /usr/local/nginx/conf/wpincludes/${vhostname}/wpcacheenabler_${vhostname}.conf|" /usr/local/nginx/conf/conf.d/${vhostname}.conf
+        sed -i "s|^  include /usr/local/nginx/conf/wpincludes/${vhostname}/wpsupercache_${vhostname}.conf|  #include /usr/local/nginx/conf/wpincludes/${vhostname}/wpsupercache_${vhostname}.conf|" /usr/local/nginx/conf/conf.d/${vhostname}.conf
         sed -i "s|try_files /wp-content/cache/supercache/\$http_host|#try_files /wp-content/cache/supercache/\$http_host|" /usr/local/nginx/conf/conf.d/${vhostname}.conf
         sed -i "s|#try_files \$cache_enabler_uri|try_files \$cache_enabler_uri|" /usr/local/nginx/conf/conf.d/${vhostname}.conf
     fi
     if [ -f "/usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf" ]; then
-        sed -i "s|^  #include /usr/local/nginx/conf/wpcacheenabler_${vhostname}.conf|  include /usr/local/nginx/conf/wpcacheenabler_${vhostname}.conf|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
-        sed -i "s|^  include /usr/local/nginx/conf/wpsupercache_${vhostname}.conf|  #include /usr/local/nginx/conf/wpsupercache_${vhostname}.conf|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
+        sed -i "s|^  #include /usr/local/nginx/conf/wpincludes/${vhostname}/wpcacheenabler_${vhostname}.conf|  include /usr/local/nginx/conf/wpincludes/${vhostname}/wpcacheenabler_${vhostname}.conf|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
+        sed -i "s|^  include /usr/local/nginx/conf/wpincludes/${vhostname}/wpsupercache_${vhostname}.conf|  #include /usr/local/nginx/conf/wpincludes/${vhostname}/wpsupercache_${vhostname}.conf|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
         sed -i "s|try_files /wp-content/cache/supercache/\$http_host|#try_files /wp-content/cache/supercache/\$http_host|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
         sed -i "s|#try_files \$cache_enabler_uri|try_files \$cache_enabler_uri|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
     fi
@@ -1286,15 +1539,15 @@ cat > "/root/tools/wp_uninstall_${vhostname}.sh" <<END
 rm -rf /usr/local/nginx/conf/conf.d/${vhostname}.conf
 rm -rf /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
 rm -rf /home/nginx/domains/${vhostname}
-rm -rf /usr/local/nginx/conf/wpsecure_${vhostname}.conf
-rm -rf /usr/local/nginx/conf/wpsupercache_${vhostname}.conf
+rm -rf /usr/local/nginx/conf/wpincludes/${vhostname}/wpsecure_${vhostname}.conf
+rm -rf /usr/local/nginx/conf/wpincludes/${vhostname}/wpsupercache_${vhostname}.conf
 rm -rf /root/tools/wp_updater_${vhostname}.sh
 rm -rf /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}.crt
 rm -rf /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}.key
 rm -rf /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}.csr
 rm -rf /usr/local/nginx/conf/ssl/${vhostname}
-rm -rf /usr/local/nginx/conf/rediscache_${vhostname}.conf
-rm -rf /usr/local/nginx/conf/wpcacheenabler_${vhostname}.conf
+rm -rf /usr/local/nginx/conf/wpincludes/${vhostname}/rediscache_${vhostname}.conf
+rm -rf /usr/local/nginx/conf/wpincludes/${vhostname}/wpcacheenabler_${vhostname}.conf
 crontab -l > cronjoblist
 sed -i "/wp_updater_${vhostname}.sh/d" cronjoblist
 sed -i "/\/${vhostname}\/wp-cron.php/d" cronjoblist
@@ -1329,8 +1582,9 @@ chmod 0700 /usr/bin/wp
 #/usr/bin/wp core check-update --allow-root
 #/usr/bin/wp core update --allow-root
 #/usr/bin/wp core update-db --allow-root
+chown -R nginx:nginx /home/nginx/domains/${vhostname}/public${WPSUBDIR}
 /usr/bin/nprestart
-} 2>&1 | dos2unix | mail -s "Wordpress WP-CLI Auto Update \$(date)" \$EMAIL
+} 2>&1 | /usr/bin/tr -cd '\11\12\15\40-\176' | sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g" | dos2unix | mail -r \$EMAIL -s "Wordpress WP-CLI Auto Update \$(date)" \$EMAIL
 ENDA
 
 chmod 0700 /root/tools/wp_updater_${vhostname}.sh
@@ -1341,7 +1595,10 @@ if [[ -z "$(crontab -l 2>&1 | grep wp_updater_${vhostname}.sh)" ]]; then
     # do not run at very same time during cron scheduling
     DELAY=$(echo ${RANDOM:0:3})
     crontab -l > cronjoblist
+    mkdir -p /home/nginx/domains/${vhostname}/cronjobs
+    cp cronjoblist /home/nginx/domains/${vhostname}/cronjobs/cronjoblist-before-wp-updater.txt
     echo "0 */8 * * * sleep ${DELAY}s ;/root/tools/wp_updater_${vhostname}.sh 2>/dev/null" >> cronjoblist
+    cp cronjoblist /home/nginx/domains/${vhostname}/cronjobs/cronjoblist-after-wp-updater.txt
     crontab cronjoblist
     rm -rf cronjoblist
     crontab -l
@@ -1639,7 +1896,7 @@ fi
 echo
 cecho "------------------------------------------------------------" $boldgreen
 cecho "To complete setup:" $boldyellow
-if [[ "$cacheenabler" = [yY] ]]; then
+if [[ "$wpscache" != [yY] ]]; then
 cecho "1. Enable Permalinks (DO NOT use links with .html extensions for performance reasons) i.e. /%post_id%/%postname%/
 2. Settings Menu > Cache Enabler set options and hit Save Changes
 3. Settings Menu > Optimus set options and hit Save Changes
@@ -1689,7 +1946,7 @@ fi
 cecho "------------------------------------------------------------" $boldgreen
 fi
 } 2>&1 | tee /tmp/setupwp.log
-cat /tmp/setupwp.log | perl -pe 's/\x1b.*?[mGKH]//g' | dos2unix | mail -s "${vhostname} Wordpress Installed `date`" $WPADMINEMAIL
+cat /tmp/setupwp.log | /usr/bin/tr -cd '\11\12\15\40-\176' | perl -pe 's/\x1b.*?[mGKH]//g' | dos2unix | mail -r $WPADMINEMAIL -s "${vhostname} Wordpress Installed `date`" $WPADMINEMAIL
 rm -rf /tmp/setupwp.log
 
 echo
