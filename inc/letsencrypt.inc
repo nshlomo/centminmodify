@@ -27,36 +27,36 @@ python_setup() {
 }
 
 simpleleclientsetup() {
-	# setup and install https://github.com/Neilpang/le instead
+	# setup and install https://github.com/Neilpang/acme.sh instead
 	
 	# find last github commit date
-	if [ -d /root/tools/le ]; then
-		LECOMMIT_DATE=$(cd /root/tools/le; date -d @$(git log -n1 --format="%at") +%Y%m%d)
+	if [ -d /root/tools/acme ]; then
+		LECOMMIT_DATE=$(cd /root/tools/acme; date -d @$(git log -n1 --format="%at") +%Y%m%d)
 	fi
 
 	echo
-	cecho "installing or updating simple shell based le client" $boldgreen
+	cecho "installing or updating acme.sh client" $boldgreen
 	echo
 	mkdir -p /root/tools
 	cd /root/tools
-	if [ -d /root/tools/le ]; then
+	if [ -d /root/tools/acme ]; then
 		rm -rf le
-		git clone https://github.com/Neilpang/le
+		git clone "$LECLIENT_GITURL"
 	else
-		git clone https://github.com/Neilpang/le
+		git clone "$LECLIENT_GITURL"
 	fi
 	cd le
 
-	if [ ! -f /root/.le/account.conf ]; then
-	cecho "setup general /root/.le/account.conf letsencrypt config file" $boldgreen
-	touch /root/.le/account.conf
-cat > "/root/.le/account.conf" <<FFG
+	if [ ! -f "${ACME_BINDIR}/account.conf" ]; then
+	cecho "setup general ${ACME_BINDIR}/account.conf letsencrypt config file" $boldgreen
+	touch "${ACME_BINDIR}/account.conf"
+cat > "${ACME_BINDIR}/account.conf" <<FFG
 ACCOUNT_EMAIL=foo@example.com
 #STAGE=1
 FFG
 	fi
 
-	if [[ "$(grep 'foo@example.com' /root/.le/account.conf)" ]]; then
+	if [[ "$(grep 'foo@example.com' ${ACME_BINDIR}/account.conf)" ]]; then
 		echo
 		cecho "Registering an account with Letsencrypt" $boldgreen
 		echo "You only do this once, so that Letsencrypt can notify &"
@@ -93,17 +93,17 @@ FFG
 			CHECKLE_MXEMAIL=$(echo "$letemail" | awk -F '@' '{print $2}')
 		done
 
-		sed -i "s|foo@example.com|$letemail|" /root/.le/account.conf
+		sed -i "s|foo@example.com|$letemail|" "${ACME_BINDIR}/account.conf"
 		echo
 	fi
 
-	./le.sh install
-	which le
-	le
+	./acme.sh install
+	which acme
+	acme
 
 	echo
 	cecho "----------------------------------------------------" $boldyellow
-	cecho "simple shell based le client is installed at:" $boldgreen
+	cecho "acme.sh client is installed at:" $boldgreen
 	cecho "$LECLIENT_LEBIN" $boldgreen
 	cecho "----------------------------------------------------" $boldyellow	
 	echo

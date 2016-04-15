@@ -11,10 +11,12 @@ CFCHECK_ENABLE='n'
 ##################################
 # Letsencrypt Client Options
 LECLIENT_OFFICIAL='y'        # use official letsencrypt.org client
-LECLIENT_LE='n'              # use 3rd party shell client https://github.com/Neilpang/le
+LECLIENT_GITURL='https://github.com/Neilpang/acme.sh'
+LECLIENT_LE='n'              # use 3rd party shell client https://github.com/Neilpang/acme.sh
 LECLIENT_LEKEYLENGTH='2048'  # 3rd party shell client default key length
 LECLIENT_LESTAGE='y'         # 3rd party shell client STAGING API
-LECLIENT_LEBIN='/root/.le/le.sh'
+ACME_BINDIR='/root/.acme.sh'
+LECLIENT_LEBIN="${ACME_BINDIR}/acme.sh"
 ##################################################################
 CENTOSVER=$(awk '{ print $3 }' /etc/redhat-release)
 
@@ -124,36 +126,36 @@ python_setup() {
 }
 
 simpleleclientsetup() {
-	# setup and install https://github.com/Neilpang/le instead
+	# setup and install https://github.com/Neilpang/acme.sh instead
 	
 	# find last github commit date
-	if [ -d /root/tools/le ]; then
-		LECOMMIT_DATE=$(cd /root/tools/le; date -d @$(git log -n1 --format="%at") +%Y%m%d)
+	if [ -d /root/tools/acme ]; then
+		LECOMMIT_DATE=$(cd /root/tools/acme; date -d @$(git log -n1 --format="%at") +%Y%m%d)
 	fi
 
 	echo
-	cecho "installing or updating simple shell based le client" $boldgreen
+	cecho "installing or updating acme.sh client" $boldgreen
 	echo
 	mkdir -p /root/tools
 	cd /root/tools
-	if [ -d /root/tools/le ]; then
-		rm -rf le
-		git clone https://github.com/Neilpang/le
+	if [ -d /root/tools/acme ]; then
+		rm -rf acme
+		git clone "$LECLIENT_GITURL"
 	else
-		git clone https://github.com/Neilpang/le
+		git clone "$LECLIENT_GITURL"
 	fi
-	cd le
+	cd acme
 
-	if [ ! -f /root/.le/account.conf ]; then
-	cecho "setup general /root/.le/account.conf letsencrypt config file" $boldgreen
-	touch /root/.le/account.conf
-cat > "/root/.le/account.conf" <<FFG
+	if [ ! -f "${ACME_BINDIR}/account.conf" ]; then
+	cecho "setup general ${ACME_BINDIR}/account.conf letsencrypt config file" $boldgreen
+	touch "${ACME_BINDIR}/account.conf"
+cat > "${ACME_BINDIR}/account.conf" <<FFG
 ACCOUNT_EMAIL=foo@example.com
 #STAGE=1
 FFG
 	fi
 
-	if [[ "$(grep 'foo@example.com' /root/.le/account.conf)" ]]; then
+	if [[ "$(grep 'foo@example.com' ${ACME_BINDIR}/account.conf)" ]]; then
 		echo
 		cecho "Registering an account with Letsencrypt" $boldgreen
 		echo "You only do this once, so that Letsencrypt can notify &"
@@ -190,17 +192,17 @@ FFG
 			CHECKLE_MXEMAIL=$(echo "$letemail" | awk -F '@' '{print $2}')
 		done
 
-		sed -i "s|foo@example.com|$letemail|" /root/.le/account.conf
+		sed -i "s|foo@example.com|$letemail|" "${ACME_BINDIR}/account.conf"
 		echo
 	fi
 
-	./le.sh install
-	which le
-	le
+	./acme.sh install
+	which acme
+	acme
 
 	echo
 	cecho "----------------------------------------------------" $boldyellow
-	cecho "simple shell based le client is installed at:" $boldgreen
+	cecho "acme.sh client is installed at:" $boldgreen
 	cecho "$LECLIENT_LEBIN" $boldgreen
 	cecho "----------------------------------------------------" $boldyellow	
 	echo
@@ -347,8 +349,8 @@ if [ ! -f /usr/local/nginx/conf/ssl ]; then
   mkdir -p /usr/local/nginx/conf/ssl
 fi
 
-if [ ! -f /usr/local/nginx/conf/ssl/${levhostname} ]; then
-  mkdir -p /usr/local/nginx/conf/ssl/${levhostname}
+if [ ! -f "/usr/local/nginx/conf/ssl/${levhostname}" ]; then
+  mkdir -p "/usr/local/nginx/conf/ssl/${levhostname}"
 fi
 
 if [ ! -f /usr/local/nginx/conf/ssl_include.conf ]; then
@@ -359,7 +361,7 @@ ssl_protocols  TLSv1 TLSv1.1 TLSv1.2;
 EVS
 fi
 
-cd /usr/local/nginx/conf/ssl/${levhostname}
+cd "/usr/local/nginx/conf/ssl/${levhostname}"
 
 cecho "---------------------------------------------------------------" $boldyellow
 cecho "Generating self signed SSL certificate..." $boldgreen
@@ -382,8 +384,8 @@ else
   SELFSIGNEDSSL_OU="$SELFSIGNEDSSL_OU"
 fi
 
-openssl req -new -newkey rsa:2048 -sha256 -nodes -out ${levhostname}.csr -keyout ${levhostname}.key -subj "/C=${SELFSIGNEDSSL_C}/ST=${SELFSIGNEDSSL_ST}/L=${SELFSIGNEDSSL_L}/O=${SELFSIGNEDSSL_O}/OU=${SELFSIGNEDSSL_OU}/CN=${levhostname}"
-openssl x509 -req -days 36500 -sha256 -in ${levhostname}.csr -signkey ${levhostname}.key -out ${levhostname}.crt
+openssl req -new -newkey rsa:2048 -sha256 -nodes -out "${levhostname}.csr" -keyout "${levhostname}.key" -subj "/C=${SELFSIGNEDSSL_C}/ST=${SELFSIGNEDSSL_ST}/L=${SELFSIGNEDSSL_L}/O=${SELFSIGNEDSSL_O}/OU=${SELFSIGNEDSSL_OU}/CN=${levhostname}"
+openssl x509 -req -days 36500 -sha256 -in "${levhostname}.csr" -signkey "${levhostname}.key" -out "${levhostname}.crt"
 
 echo
 cecho "---------------------------------------------------------------" $boldyellow
@@ -392,7 +394,7 @@ cecho "creating CSR File: ${levhostname}-backup.csr" $boldgreen
 cecho "creating private key: ${levhostname}-backup.key" $boldgreen
 sleep 5
 
-openssl req -new -newkey rsa:2048 -sha256 -nodes -out ${levhostname}-backup.csr -keyout ${levhostname}-backup.key -subj "/C=${SELFSIGNEDSSL_C}/ST=${SELFSIGNEDSSL_ST}/L=${SELFSIGNEDSSL_L}/O=${SELFSIGNEDSSL_O}/OU=${SELFSIGNEDSSL_OU}/CN=${levhostname}"
+openssl req -new -newkey rsa:2048 -sha256 -nodes -out "${levhostname}-backup.csr" -keyout "${levhostname}-backup.key" -subj "/C=${SELFSIGNEDSSL_C}/ST=${SELFSIGNEDSSL_ST}/L=${SELFSIGNEDSSL_L}/O=${SELFSIGNEDSSL_O}/OU=${SELFSIGNEDSSL_OU}/CN=${levhostname}"
 
 echo
 cecho "---------------------------------------------------------------" $boldyellow
@@ -406,12 +408,12 @@ sleep 5
 echo
 cecho "extracting SPKI Base64 encoded hash for primary private key = ${levhostname}.key ..." $boldgreen
 
-openssl rsa -in ${levhostname}.key -outform der -pubout | openssl dgst -sha256 -binary | openssl enc -base64 | tee -a /usr/local/nginx/conf/ssl/${levhostname}/hpkp-info-primary-pin.txt
+openssl rsa -in "${levhostname}.key" -outform der -pubout | openssl dgst -sha256 -binary | openssl enc -base64 | tee -a "/usr/local/nginx/conf/ssl/${levhostname}/hpkp-info-primary-pin.txt"
 
 echo
 cecho "extracting SPKI Base64 encoded hash for backup private key = ${levhostname}-backup.key ..." $boldgreen
 
-openssl rsa -in ${levhostname}-backup.key -outform der -pubout | openssl dgst -sha256 -binary | openssl enc -base64 | tee -a /usr/local/nginx/conf/ssl/${levhostname}/hpkp-info-secondary-pin.txt
+openssl rsa -in "${levhostname}-backup.key" -outform der -pubout | openssl dgst -sha256 -binary | openssl enc -base64 | tee -a "/usr/local/nginx/conf/ssl/${levhostname}/hpkp-info-secondary-pin.txt"
 
 echo
 cecho "HTTP Public Key Pinning Header for Nginx" $boldgreen
@@ -675,52 +677,52 @@ deploycert() {
       					echo
       					cecho "obtaining Letsencrypt SSL certificate via simple shell le webroot authentication..." $boldgreen
       					echo
-      					mkdir -p /home/nginx/domains/${levhostname}/public/.well-known/acme-challenge
-      					chown -R nginx:nginx /home/nginx/domains/${levhostname}/public/.well-known/acme-challenge
+      					mkdir -p "/home/nginx/domains/${levhostname}/public/.well-known/acme-challenge"
+      					chown -R nginx:nginx "/home/nginx/domains/${levhostname}/public/.well-known/acme-challenge"
       					if [[ "$TOPLEVEL" = [yY] ]]; then
       						if [[ "$LECLIENT_LESTAGE" = [yY] ]]; then
         						echo "STAGE=1 FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${levhostname}/public ${levhostname} www.${levhostname} $LECLIENT_LEKEYLENGTH"
-        						STAGE=1 FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${levhostname}/public ${levhostname} www.${levhostname} $LECLIENT_LEKEYLENGTH
+        						STAGE=1 FORCE=1 $LECLIENT_LEBIN issue "/home/nginx/domains/${levhostname}/public" "${levhostname}" "www.${levhostname}" "$LECLIENT_LEKEYLENGTH"
         					else
         						echo "FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${levhostname}/public ${levhostname} www.${levhostname} $LECLIENT_LEKEYLENGTH"
-        						FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${levhostname}/public ${levhostname} www.${levhostname} $LECLIENT_LEKEYLENGTH
+        						FORCE=1 $LECLIENT_LEBIN issue "/home/nginx/domains/${levhostname}/public" "${levhostname}" "www.${levhostname}" "$LECLIENT_LEKEYLENGTH"
         					fi
       					else
       						if [[ "$LECLIENT_LESTAGE" = [yY] ]]; then
         						echo "STAGE=1 FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${levhostname}/public ${levhostname} no $LECLIENT_LEKEYLENGTH"
-        						STAGE=1 FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${levhostname}/public ${levhostname} no $LECLIENT_LEKEYLENGTH
+        						STAGE=1 FORCE=1 $LECLIENT_LEBIN issue "/home/nginx/domains/${levhostname}/public" "${levhostname}" no "$LECLIENT_LEKEYLENGTH"
         					else	
         						echo "FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${levhostname}/public ${levhostname} no $LECLIENT_LEKEYLENGTH"
-        						FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${levhostname}/public ${levhostname} no $LECLIENT_LEKEYLENGTH
+        						FORCE=1 $LECLIENT_LEBIN issue "/home/nginx/domains/${levhostname}/public" "${levhostname}" no "$LECLIENT_LEKEYLENGTH"
         					fi
       					fi
       					LECHECK=$?
 					  
       					if [[ "$LECHECK" = '0' ]]; then
         					# create nginx concatenated cert file
-        					if [[ -f /root/.le/${levhostname}/${levhostname}.cer && -f /root/.le/${levhostname}/ca.cer ]]; then
-          					ls -lah /root/.le/${levhostname}/
+        					if [[ -f "${ACME_BINDIR}/${levhostname}/${levhostname}.cer" && -f "${ACME_BINDIR}/${levhostname}/ca.cer" ]]; then
+          					ls -lah "${ACME_BINDIR}/${levhostname}/"
           					echo
-          					echo "create /root/.le/${levhostname}/${levhostname}-leunified.crt"
-          					cat /root/.le/${levhostname}/${levhostname}.cer /root/.le/${levhostname}/ca.cer > /usr/local/nginx/conf/ssl/${levhostname}/${levhostname}-leunified.crt
-          					ls -lah /usr/local/nginx/conf/ssl/${levhostname}/${levhostname}-leunified.crt
+          					echo "create ${ACME_BINDIR}/${levhostname}/${levhostname}-leunified.crt"
+          					cat "${ACME_BINDIR}/${levhostname}/${levhostname}.cer" "${ACME_BINDIR}/${levhostname}/ca.cer" > "/usr/local/nginx/conf/ssl/${levhostname}/${levhostname}-leunified.crt"
+          					ls -lah "/usr/local/nginx/conf/ssl/${levhostname}/${levhostname}-leunified.crt"
           					echo
-          					echo "installcert populate /root/.le/${levhostname}/${levhostname}.conf"
-          					$LECLIENT_LEBIN installcert ${levhostname} /usr/local/nginx/conf/ssl/${levhostname}/${levhostname}.cer /usr/local/nginx/conf/ssl/${levhostname}/${levhostname}-le.key /usr/local/nginx/conf/ssl/${levhostname}/ca.cer /usr/bin/ngxreload
+          					echo "installcert populate ${ACME_BINDIR}/${levhostname}/${levhostname}.conf"
+          					$LECLIENT_LEBIN installcert "${levhostname}" "/usr/local/nginx/conf/ssl/${levhostname}/${levhostname}.cer" "/usr/local/nginx/conf/ssl/${levhostname}/${levhostname}-le.key" "/usr/local/nginx/conf/ssl/${levhostname}/ca.cer" /usr/bin/ngxreload
           					echo
         					fi
 					   
         					# replace self signed ssl cert with letsencrypt ssl certificate and enable ssl stapling
         					# if letsencrypt webroot authentication was sUccessfully ran and SSL certificate obtained
         					# otherwise leave original self signed SSL certificates in place
-        					sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}.crt|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}-leunified.crt|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
-        					sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}.key|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}-le.key|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
-        					sed -i "s|#resolver |resolver |" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
-        					sed -i "s|#resolver_timeout|resolver_timeout|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
-        					sed -i "s|#ssl_stapling on|ssl_stapling on|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
-        					sed -i "s|#ssl_stapling_verify|ssl_stapling_verify|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
-        					sed -i "s|#ssl_trusted_certificate|ssl_trusted_certificate|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
-        					sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}-trusted.crt|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}-leunified.crt|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
+        					sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}.crt|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}-leunified.crt|" "/usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf"
+        					sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}.key|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}-le.key|" "/usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf"
+        					sed -i "s|#resolver |resolver |" "/usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf"
+        					sed -i "s|#resolver_timeout|resolver_timeout|" "/usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf"
+        					sed -i "s|#ssl_stapling on|ssl_stapling on|" "/usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf"
+        					sed -i "s|#ssl_stapling_verify|ssl_stapling_verify|" "/usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf"
+        					sed -i "s|#ssl_trusted_certificate|ssl_trusted_certificate|" "/usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf"
+        					sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}-trusted.crt|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}-leunified.crt|" "/usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf"
         					/usr/bin/nprestart
       					fi # LECHECK
     					else
@@ -734,14 +736,14 @@ deploycert() {
     					echo
     					cecho "obtaining Letsencrypt SSL certificate via webroot authentication..." $boldgreen
     					echo
-						mkdir -p /home/nginx/domains/${levhostname}/public/.well-known/acme-challenge
-						chown -R nginx:nginx /home/nginx/domains/${levhostname}/public/.well-known/acme-challenge
+						mkdir -p "/home/nginx/domains/${levhostname}/public/.well-known/acme-challenge"
+						chown -R nginx:nginx "/home/nginx/domains/${levhostname}/public/.well-known/acme-challenge"
     					if [[ "$TOPLEVEL" = [yY] ]]; then
       						echo "/root/.local/share/letsencrypt/bin/letsencrypt -c /etc/letsencrypt/webroot.ini --user-agent $LE_USERAGENT --webroot-path /home/nginx/domains/${levhostname}/public -d ${levhostname} -d www.${levhostname}		 certonly"
-      						/root/.local/share/letsencrypt/bin/letsencrypt -c /etc/letsencrypt/webroot.ini --user-agent $LE_USERAGENT --webroot-path /home/nginx/domains/${levhostname}/public -d ${levhostname} -d www.${levhostname} 		certonly
+      						/root/.local/share/letsencrypt/bin/letsencrypt -c /etc/letsencrypt/webroot.ini --user-agent "$LE_USERAGENT" --webroot-path "/home/nginx/domains/${levhostname}/public" -d "${levhostname}" -d "www.${levhostname}" certonly
     					else
       						echo "/root/.local/share/letsencrypt/bin/letsencrypt -c /etc/letsencrypt/webroot.ini --user-agent $LE_USERAGENT --webroot-path /home/nginx/domains/${levhostname}/public -d ${levhostname} certonly"
-      						/root/.local/share/letsencrypt/bin/letsencrypt -c /etc/letsencrypt/webroot.ini --user-agent $LE_USERAGENT --webroot-path /home/nginx/domains/${levhostname}/public -d ${levhostname} certonly
+      						/root/.local/share/letsencrypt/bin/letsencrypt -c /etc/letsencrypt/webroot.ini --user-agent "$LE_USERAGENT" --webroot-path "/home/nginx/domains/${levhostname}/public" -d "${levhostname}" certonly
     					fi
     					LECHECK=$?
 					
@@ -750,23 +752,23 @@ deploycert() {
       						# otherwise leave original self signed SSL certificates in place
 					    	  
       						# EMAIL and LOGGING for cron
-      						echo "EMAIL=\$(awk '/email/ {print \$3}' /etc/letsencrypt/webroot.ini)" > /usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron
-      						echo "ERRORLOG=\$(tail /var/log/letsencrypt/letsencrypt.log)" >> /usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron
-      						echo "CERT=\"/etc/letsencrypt/live/${levhostname}/cert.pem\"" >> /usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron
-      						echo "" >> /usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron
+      						echo "EMAIL=\$(awk '/email/ {print \$3}' /etc/letsencrypt/webroot.ini)" > "/usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron"
+      						echo "ERRORLOG=\$(tail /var/log/letsencrypt/letsencrypt.log)" >> "/usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron"
+      						echo "CERT=\"/etc/letsencrypt/live/${levhostname}/cert.pem\"" >> "/usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron"
+      						echo "" >> "/usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron"
 						
-							echo "if [[ -f "\$CERT" ]]; then" >> /usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron
-							echo "  expiry=\$(openssl x509 -enddate -noout -in \$CERT | cut -d'=' -f2 | awk '{print \$2 " " \$1 " " \$4}')" >> /usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron
-							echo "  epochExpirydate=\$(date -d\"\${expiry}\" +%s)" >> /usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron
-							echo "  epochToday=\$(date +%s)" >> /usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron
-							echo "  secondsToExpire=\$(echo \${epochExpirydate} - \${epochToday} | bc)" >> /usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron
-							echo "  daysToExpire=\$(echo \"\${secondsToExpire} / 60 / 60 / 24\" | bc)" >> /usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron
-							echo "  if [ "\$daysToExpire" -lt '30' ]; then" >> /usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron
+							echo "if [[ -f "\$CERT" ]]; then" >> "/usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron"
+							echo "  expiry=\$(openssl x509 -enddate -noout -in \$CERT | cut -d'=' -f2 | awk '{print \$2 " " \$1 " " \$4}')" >> "/usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron"
+							echo "  epochExpirydate=\$(date -d\"\${expiry}\" +%s)" >> "/usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron"
+							echo "  epochToday=\$(date +%s)" >> "/usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron"
+							echo "  secondsToExpire=\$(echo \${epochExpirydate} - \${epochToday} | bc)" >> "/usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron"
+							echo "  daysToExpire=\$(echo \"\${secondsToExpire} / 60 / 60 / 24\" | bc)" >> "/usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron"
+							echo "  if [ "\$daysToExpire" -lt '30' ]; then" >> "/usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron"
 					
       						if [[ "$TOPLEVEL" = [yY] ]]; then
-        						echo "    /root/.local/share/letsencrypt/bin/letsencrypt -c /etc/letsencrypt/webroot.ini --user-agent $LE_USERAGENT --webroot-path /home/nginx/domains/${levhostname}/public -d ${levhostname} -d www.${levhostname} certonly" >> /usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron
+        						echo "    /root/.local/share/letsencrypt/bin/letsencrypt -c /etc/letsencrypt/webroot.ini --user-agent $LE_USERAGENT --webroot-path /home/nginx/domains/${levhostname}/public -d ${levhostname} -d www.${levhostname} certonly" >> "/usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron"
       						else
-        						echo "    /root/.local/share/letsencrypt/bin/letsencrypt -c /etc/letsencrypt/webroot.ini --user-agent $LE_USERAGENT --webroot-path /home/nginx/domains/${levhostname}/public -d ${levhostname} certonly" >> 					/usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron
+        						echo "    /root/.local/share/letsencrypt/bin/letsencrypt -c /etc/letsencrypt/webroot.ini --user-agent $LE_USERAGENT --webroot-path /home/nginx/domains/${levhostname}/public -d ${levhostname} certonly" >> "/usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron"
       						fi
 			      
       			# cronjob error check and email send
@@ -783,7 +785,7 @@ CFF
 			
       					echo
       					echo "/usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron contents:"      
-      					cat /usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron
+      					cat "/usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron"
 					      
       					if [[ -z "$(crontab -l 2>&1 | grep 'letsencrypt-${levhostname}-cron')" ]]; then
           					# generate random number of seconds to delay cron start
@@ -801,14 +803,14 @@ CFF
       					# replace self signed ssl cert with letsencrypt ssl certificate and enable ssl stapling
       					# if letsencrypt webroot authentication was sUccessfully ran and SSL certificate obtained
       					# otherwise leave original self signed SSL certificates in place
-      					sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}.crt|\/etc\/letsencrypt\/live\/${levhostname}\/fullchain.pem|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
-      					sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}.key|\/etc\/letsencrypt\/live\/${levhostname}\/privkey.pem|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
-      					sed -i "s|#resolver |resolver |" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
-      					sed -i "s|#resolver_timeout|resolver_timeout|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
-      					sed -i "s|#ssl_stapling on|ssl_stapling on|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
-      					sed -i "s|#ssl_stapling_verify|ssl_stapling_verify|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
-      					sed -i "s|#ssl_trusted_certificate|ssl_trusted_certificate|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
-      					sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}-trusted.crt|\/etc\/letsencrypt\/live\/${levhostname}\/fullchain.pem|" /usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf
+      					sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}.crt|\/etc\/letsencrypt\/live\/${levhostname}\/fullchain.pem|" "/usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf"
+      					sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}.key|\/etc\/letsencrypt\/live\/${levhostname}\/privkey.pem|" "/usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf"
+      					sed -i "s|#resolver |resolver |" "/usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf"
+      					sed -i "s|#resolver_timeout|resolver_timeout|" "/usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf"
+      					sed -i "s|#ssl_stapling on|ssl_stapling on|" "/usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf"
+      					sed -i "s|#ssl_stapling_verify|ssl_stapling_verify|" "/usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf"
+      					sed -i "s|#ssl_trusted_certificate|ssl_trusted_certificate|" "/usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf"
+      					sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${levhostname}\/${levhostname}-trusted.crt|\/etc\/letsencrypt\/live\/${levhostname}\/fullchain.pem|" "/usr/local/nginx/conf/conf.d/${levhostname}.ssl.conf"
       					/usr/bin/nprestart
     					fi # LECHECK
   					else
@@ -849,7 +851,7 @@ CFF
     					if [[ "$LECLIENT_LE" = [yY] ]]; then
       					cecho "Letsencrypt SSL Certificate: /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}.cer" $boldyellow
       					cecho "Letsencrypt SSL Certificate Private Key: /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}-le.key" $boldyellow
-      					cecho "Letsencrypt SSL Certificate CSR: /root/.le/${vhostname}/${vhostname}.csr" $boldyellow
+      					cecho "Letsencrypt SSL Certificate CSR: ${ACME_BINDIR}/${vhostname}/${vhostname}.csr" $boldyellow
       					cecho "Letsencrypt SSL Certificate Full Chain: /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}-unified.pem" $boldyellow
       					cecho "Letsencrypt SSL simple shell le config: /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}.conf" $boldyellow
     					fi #LECLIENT_LE
@@ -872,7 +874,7 @@ CFF
 renewcert() {
 
   	if [[ "$LECLIENT_LE" = [yY] || "$LECLIENT_OFFICIAL" != [yY] ]]; then
-    	if [ -f $LECLIENT_LEBIN ]; then
+    	if [ -f "$LECLIENT_LEBIN" ]; then
 			echo
 			read -ep "Enter the nginx vhost domain you want to renew SSL cert for: " levhostname
 			echo
@@ -945,18 +947,18 @@ renewcert() {
       		if [[ "$TOPLEVEL" = [yY] ]]; then
         		if [[ "$LECLIENT_LESTAGE" = [yY] ]]; then
           		echo "STAGE=1 FORCE=1 $LECLIENT_LEBIN renew ${levhostname}"
-          		STAGE=1 FORCE=1 $LECLIENT_LEBIN renew ${levhostname}
+          		STAGE=1 FORCE=1 $LECLIENT_LEBIN renew "${levhostname}"
         		else
           		echo "FORCE=1 $LECLIENT_LEBIN renew ${levhostname}"
-          		FORCE=1 $LECLIENT_LEBIN renew ${levhostname}
+          		FORCE=1 $LECLIENT_LEBIN renew "${levhostname}"
         		fi
       		else
         		if [[ "$LECLIENT_LESTAGE" = [yY] ]]; then
           		echo "STAGE=1 FORCE=1 $LECLIENT_LEBIN renew ${levhostname}"
-          		STAGE=1 FORCE=1 $LECLIENT_LEBIN renew ${levhostname}
+          		STAGE=1 FORCE=1 $LECLIENT_LEBIN renew "${levhostname}"
         		else
           		echo "FORCE=1 $LECLIENT_LEBIN renew ${levhostname}"
-          		FORCE=1 $LECLIENT_LEBIN renew ${levhostname}
+          		FORCE=1 $LECLIENT_LEBIN renew "${levhostname}"
         		fi
       		fi
     	fi
@@ -971,7 +973,7 @@ renewcert() {
 				lemsgdns			
 				echo "renewing existing letsencrypt SSL certificate"
 				echo "for $levhostname"
-				/bin/bash /usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron
+				/bin/bash "/usr/local/nginx/conf/ssl/${levhostname}/letsencrypt-${levhostname}-cron"
 				echo
 			else
 				echo
@@ -1004,37 +1006,37 @@ case "$1" in
     		echo
     		exit
   		fi
-		} 2>&1 | tee ${CENTMINLOGDIR}/letsencrypt-addon-install_${DT}.log
+		} 2>&1 | tee "${CENTMINLOGDIR}/letsencrypt-addon-install_${DT}.log"
 		
 		endtime=$(date +%s.%N)
 		
 		INSTALLTIME=$(echo "scale=2;$endtime - $starttime"|bc )
-		echo "" >> ${CENTMINLOGDIR}/letsencrypt-addon-install_${DT}.log
-		echo "Letsencrypt Addon Install Time: $INSTALLTIME seconds" >> ${CENTMINLOGDIR}/letsencrypt-addon-install_${DT}.log
+		echo "" >> "${CENTMINLOGDIR}/letsencrypt-addon-install_${DT}.log"
+		echo "Letsencrypt Addon Install Time: $INSTALLTIME seconds" >> "${CENTMINLOGDIR}/letsencrypt-addon-install_${DT}.log"
 		;;
 	deploy)
 		starttime=$(date +%s.%N)
 		{
 		deploycert
-		} 2>&1 | tee ${CENTMINLOGDIR}/letsencrypt-deploycert-{$levhostname}_${DT}.log
+		} 2>&1 | tee "${CENTMINLOGDIR}/letsencrypt-deploycert-{$levhostname}_${DT}.log"
 		
 		endtime=$(date +%s.%N)
 		
 		INSTALLTIME=$(echo "scale=2;$endtime - $starttime"|bc )
-		echo "" >> ${CENTMINLOGDIR}/letsencrypt-deploycert-{$levhostname}_${DT}.log
-		echo "Letsencrypt Deploy Cert Time: $INSTALLTIME seconds" >> ${CENTMINLOGDIR}/letsencrypt-deploycert-{$levhostname}_${DT}.log
+		echo "" >> "${CENTMINLOGDIR}/letsencrypt-deploycert-{$levhostname}_${DT}.log"
+		echo "Letsencrypt Deploy Cert Time: $INSTALLTIME seconds" >> "${CENTMINLOGDIR}/letsencrypt-deploycert-{$levhostname}_${DT}.log"
 		;;
 	renew)
 		starttime=$(date +%s.%N)
 		{
 		renewcert
-		} 2>&1 | tee ${CENTMINLOGDIR}/letsencrypt-renewcert-{$levhostname}_${DT}.log
+		} 2>&1 | tee "${CENTMINLOGDIR}/letsencrypt-renewcert-{$levhostname}_${DT}.log"
 		
 		endtime=$(date +%s.%N)
 		
 		INSTALLTIME=$(echo "scale=2;$endtime - $starttime"|bc )
-		echo "" >> ${CENTMINLOGDIR}/letsencrypt-renewcert-{$levhostname}_${DT}.log
-		echo "Letsencrypt Renew Cert Time: $INSTALLTIME seconds" >> ${CENTMINLOGDIR}/letsencrypt-renewcert-{$levhostname}_${DT}.log
+		echo "" >> "${CENTMINLOGDIR}/letsencrypt-renewcert-{$levhostname}_${DT}.log"
+		echo "Letsencrypt Renew Cert Time: $INSTALLTIME seconds" >> "${CENTMINLOGDIR}/letsencrypt-renewcert-{$levhostname}_${DT}.log"
 		;;		
 	*)
 		echo

@@ -57,8 +57,8 @@ if [ ! -f /usr/local/nginx/conf/ssl ]; then
   mkdir -p /usr/local/nginx/conf/ssl
 fi
 
-if [ ! -f /usr/local/nginx/conf/ssl/${vhostname} ]; then
-  mkdir -p /usr/local/nginx/conf/ssl/${vhostname}
+if [ ! -f "/usr/local/nginx/conf/ssl/${vhostname}" ]; then
+  mkdir -p "/usr/local/nginx/conf/ssl/${vhostname}"
 fi
 
 if [ ! -f /usr/local/nginx/conf/ssl_include.conf ]; then
@@ -69,7 +69,7 @@ ssl_protocols  TLSv1 TLSv1.1 TLSv1.2;
 EVS
 fi
 
-cd /usr/local/nginx/conf/ssl/${vhostname}
+cd "/usr/local/nginx/conf/ssl/${vhostname}"
 
 cecho "---------------------------------------------------------------" $boldyellow
 cecho "Generating self signed SSL certificate..." $boldgreen
@@ -92,8 +92,8 @@ else
   SELFSIGNEDSSL_OU="$SELFSIGNEDSSL_OU"
 fi
 
-openssl req -new -newkey rsa:2048 -sha256 -nodes -out ${vhostname}.csr -keyout ${vhostname}.key -subj "/C=${SELFSIGNEDSSL_C}/ST=${SELFSIGNEDSSL_ST}/L=${SELFSIGNEDSSL_L}/O=${SELFSIGNEDSSL_O}/OU=${SELFSIGNEDSSL_OU}/CN=${vhostname}"
-openssl x509 -req -days 36500 -sha256 -in ${vhostname}.csr -signkey ${vhostname}.key -out ${vhostname}.crt
+openssl req -new -newkey rsa:2048 -sha256 -nodes -out "${vhostname}.csr" -keyout "${vhostname}.key" -subj "/C=${SELFSIGNEDSSL_C}/ST=${SELFSIGNEDSSL_ST}/L=${SELFSIGNEDSSL_L}/O=${SELFSIGNEDSSL_O}/OU=${SELFSIGNEDSSL_OU}/CN=${vhostname}"
+openssl x509 -req -days 36500 -sha256 -in "${vhostname}.csr" -signkey "${vhostname}.key" -out "${vhostname}.crt"
 
 echo
 cecho "---------------------------------------------------------------" $boldyellow
@@ -102,7 +102,7 @@ cecho "creating CSR File: ${vhostname}-backup.csr" $boldgreen
 cecho "creating private key: ${vhostname}-backup.key" $boldgreen
 sleep 5
 
-openssl req -new -newkey rsa:2048 -sha256 -nodes -out ${vhostname}-backup.csr -keyout ${vhostname}-backup.key -subj "/C=${SELFSIGNEDSSL_C}/ST=${SELFSIGNEDSSL_ST}/L=${SELFSIGNEDSSL_L}/O=${SELFSIGNEDSSL_O}/OU=${SELFSIGNEDSSL_OU}/CN=${vhostname}"
+openssl req -new -newkey rsa:2048 -sha256 -nodes -out "${vhostname}-backup.csr" -keyout "${vhostname}-backup.key" -subj "/C=${SELFSIGNEDSSL_C}/ST=${SELFSIGNEDSSL_ST}/L=${SELFSIGNEDSSL_L}/O=${SELFSIGNEDSSL_O}/OU=${SELFSIGNEDSSL_OU}/CN=${vhostname}"
 
 echo
 cecho "---------------------------------------------------------------" $boldyellow
@@ -116,12 +116,12 @@ sleep 5
 echo
 cecho "extracting SPKI Base64 encoded hash for primary private key = ${vhostname}.key ..." $boldgreen
 
-openssl rsa -in ${vhostname}.key -outform der -pubout | openssl dgst -sha256 -binary | openssl enc -base64 | tee -a /usr/local/nginx/conf/ssl/${vhostname}/hpkp-info-primary-pin.txt
+openssl rsa -in "${vhostname}.key" -outform der -pubout | openssl dgst -sha256 -binary | openssl enc -base64 | tee -a "/usr/local/nginx/conf/ssl/${vhostname}/hpkp-info-primary-pin.txt"
 
 echo
 cecho "extracting SPKI Base64 encoded hash for backup private key = ${vhostname}-backup.key ..." $boldgreen
 
-openssl rsa -in ${vhostname}-backup.key -outform der -pubout | openssl dgst -sha256 -binary | openssl enc -base64 | tee -a /usr/local/nginx/conf/ssl/${vhostname}/hpkp-info-secondary-pin.txt
+openssl rsa -in "${vhostname}-backup.key" -outform der -pubout | openssl dgst -sha256 -binary | openssl enc -base64 | tee -a "/usr/local/nginx/conf/ssl/${vhostname}/hpkp-info-secondary-pin.txt"
 
 echo
 cecho "HTTP Public Key Pinning Header for Nginx" $boldgreen
@@ -371,7 +371,7 @@ fi
 
 echo ""
 
-if [ ! -d /home/nginx/domains/$vhostname ]; then
+if [ ! -d "/home/nginx/domains/$vhostname" ]; then
 
 dbsetup
 
@@ -379,7 +379,7 @@ dbsetup
 umask 027
 mkdir -p /home/nginx/domains/$vhostname/{public,private,log,backup}
 if [[ "$wpsubdirinstall" = [yY] ]]; then
-  mkdir -p /home/nginx/domains/$vhostname/public/$wpsubdir_value
+  mkdir -p "/home/nginx/domains/$vhostname/public/$wpsubdir_value"
 fi
 if [ ! -f /usr/local/nginx/conf/wpincludes ]; then
   mkdir -p /usr/local/nginx/conf/wpincludes
@@ -389,7 +389,7 @@ if [ ! -f "/usr/local/nginx/conf/wpincludes/$vhostname" ]; then
 fi
 
 if [[ "$PUREFTPD_DISABLED" = [nN] ]]; then
-  ( echo ${ftppass} ; echo ${ftppass} ) | pure-pw useradd $ftpuser -u $PUREUSER -g $PUREGROUP -d /home/nginx/domains/$vhostname
+  ( echo "${ftppass}" ; echo "${ftppass}" ) | pure-pw useradd $ftpuser -u $PUREUSER -g $PUREGROUP -d "/home/nginx/domains/$vhostname"
   pure-pw mkdb
 fi
 
@@ -422,14 +422,14 @@ cat > "/home/nginx/domains/$vhostname/public/index.html" <<END
 END
 fi
 
-    cp -R $CUR_DIR/htdocs/custom_errorpages/* /home/nginx/domains/$vhostname/public
+    cp -R $CUR_DIR/htdocs/custom_errorpages/* "/home/nginx/domains/$vhostname/public"
 umask 022
 chown -R nginx:nginx "/home/nginx/domains/$vhostname"
 find "/home/nginx/domains/$vhostname" -type d -exec chmod g+s {} \;
 
 if [[ "$disablepwdprotect" != [yY] ]]; then
   # wp-login.php password protection
-  if [[ -f /usr/local/nginx/conf/htpasswd.sh && ! -f /home/nginx/domains/$vhostname/htpasswd_wplogin ]]; then
+  if [[ -f /usr/local/nginx/conf/htpasswd.sh && ! -f "/home/nginx/domains/$vhostname/htpasswd_wplogin" ]]; then
     HTWPLOGINSALT=$(openssl rand -base64 13 | cut -c1-13)
     HTWPLOGINSALTB=$(openssl rand -base64 19 | cut -c1-19)
     HTWPLOGIN=$RANDOM
@@ -439,7 +439,7 @@ if [[ "$disablepwdprotect" != [yY] ]]; then
     HTPASS="p${HTWPLOGINSALTB}y${HTWPLOGIN}"
     HTPASS=$(echo $HTPASS | sed -e 's|\/||g')
     echo "/usr/local/nginx/conf/htpasswd.sh create /home/nginx/domains/$vhostname/htpasswd_wplogin $HTUSER $HTPASS"
-    /usr/local/nginx/conf/htpasswd.sh create /home/nginx/domains/$vhostname/htpasswd_wplogin $HTUSER $HTPASS
+    /usr/local/nginx/conf/htpasswd.sh create "/home/nginx/domains/$vhostname/htpasswd_wplogin" $HTUSER $HTPASS
   fi
 fi
 
@@ -1298,10 +1298,10 @@ if [[ -z "$(crontab -l 2>&1 | grep '\/${vhostname}/wp-cron.php')" ]]; then
     # making sure they do not run at very same time during cron scheduling
     DELAY=$(echo ${RANDOM:0:3})
     crontab -l > cronjoblist
-    mkdir -p /home/nginx/domains/${vhostname}/cronjobs
-    cp cronjoblist /home/nginx/domains/${vhostname}/cronjobs/cronjoblist-before-wp-cron.txt
+    mkdir -p "/home/nginx/domains/${vhostname}/cronjobs"
+    cp cronjoblist "/home/nginx/domains/${vhostname}/cronjobs/cronjoblist-before-wp-cron.txt"
     echo "*/15 * * * * sleep ${DELAY}s ; wget -O - -q -t 1 http://${vhostname}/wp-cron.php?doing_wp_cron=1 > /dev/null 2>&1" >> cronjoblist
-    cp cronjoblist /home/nginx/domains/${vhostname}/cronjobs/cronjoblist-after-wp-cron.txt
+    cp cronjoblist "/home/nginx/domains/${vhostname}/cronjobs/cronjoblist-after-wp-cron.txt"
     crontab cronjoblist
     rm -rf cronjoblist
     crontab -l
@@ -1335,7 +1335,7 @@ elif [ -f /root/.wp-cli/commands/super-cache/cli.php ]; then
   cd /root/.wp-cli/commands/super-cache
   git stash
   git pull
-  cd /home/nginx/domains/${vhostname}/public${WPSUBDIR}
+  cd "/home/nginx/domains/${vhostname}/public${WPSUBDIR}"
 fi
 
 if [[ "$responsivetheme" = [yY] ]]; then
@@ -1344,10 +1344,10 @@ if [[ "$responsivetheme" = [yY] ]]; then
   cecho "------------------------------------------------------------" $boldgreen
 fi
  
-chown nginx:nginx /home/nginx/domains/${vhostname}/public
-chown -R nginx:nginx /home/nginx/domains/${vhostname}/public
+chown nginx:nginx "/home/nginx/domains/${vhostname}/public"
+chown -R nginx:nginx "/home/nginx/domains/${vhostname}/public"
 
-cd /home/nginx/domains/${vhostname}/public${WPSUBDIR}
+cd "/home/nginx/domains/${vhostname}/public${WPSUBDIR}"
 
 chmod 0770 wp-content
 chmod 0400 readme.html
@@ -1485,7 +1485,7 @@ if [[ -f /root/.wp-cli/commands/super-cache/cli.php && "$cacheenabler" != [yY] ]
   wp super-cache enable --allow-root
 fi
 
-chown -R nginx:nginx /home/nginx/domains/${vhostname}/public${WPSUBDIR}/wp-content/plugins/
+chown -R nginx:nginx "/home/nginx/domains/${vhostname}/public${WPSUBDIR}/wp-content/plugins/"
 
 # write permissions for log
 if [ -f wp-content/plugins/tpc-memory-usage/logs/tpcmem.log ]; then
@@ -1498,17 +1498,17 @@ if [ -f wp-content/plugins/tpc-memory-usage/css/tpcmem.css ]; then
 fi
 
 if [[ "$wpscache" != [yY] ]]; then
-    if [ -f "/usr/local/nginx/conf/conf.d/${vhostname}.conf" ]; then
-        sed -i "s|^  #include /usr/local/nginx/conf/wpincludes/${vhostname}/wpcacheenabler_${vhostname}.conf|  include /usr/local/nginx/conf/wpincludes/${vhostname}/wpcacheenabler_${vhostname}.conf|" /usr/local/nginx/conf/conf.d/${vhostname}.conf
-        sed -i "s|^  include /usr/local/nginx/conf/wpincludes/${vhostname}/wpsupercache_${vhostname}.conf|  #include /usr/local/nginx/conf/wpincludes/${vhostname}/wpsupercache_${vhostname}.conf|" /usr/local/nginx/conf/conf.d/${vhostname}.conf
-        sed -i "s|try_files /wp-content/cache/supercache/\$http_host|#try_files /wp-content/cache/supercache/\$http_host|" /usr/local/nginx/conf/conf.d/${vhostname}.conf
-        sed -i "s|#try_files \$cache_enabler_uri|try_files \$cache_enabler_uri|" /usr/local/nginx/conf/conf.d/${vhostname}.conf
+    if [ -f ""/usr/local/nginx/conf/conf.d/${vhostname}.conf"" ]; then
+        sed -i "s|^  #include /usr/local/nginx/conf/wpincludes/${vhostname}/wpcacheenabler_${vhostname}.conf|  include /usr/local/nginx/conf/wpincludes/${vhostname}/wpcacheenabler_${vhostname}.conf|" "/usr/local/nginx/conf/conf.d/${vhostname}.conf"
+        sed -i "s|^  include /usr/local/nginx/conf/wpincludes/${vhostname}/wpsupercache_${vhostname}.conf|  #include /usr/local/nginx/conf/wpincludes/${vhostname}/wpsupercache_${vhostname}.conf|" "/usr/local/nginx/conf/conf.d/${vhostname}.conf"
+        sed -i "s|try_files /wp-content/cache/supercache/\$http_host|#try_files /wp-content/cache/supercache/\$http_host|" "/usr/local/nginx/conf/conf.d/${vhostname}.conf"
+        sed -i "s|#try_files \$cache_enabler_uri|try_files \$cache_enabler_uri|" "/usr/local/nginx/conf/conf.d/${vhostname}.conf"
     fi
     if [ -f "/usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf" ]; then
-        sed -i "s|^  #include /usr/local/nginx/conf/wpincludes/${vhostname}/wpcacheenabler_${vhostname}.conf|  include /usr/local/nginx/conf/wpincludes/${vhostname}/wpcacheenabler_${vhostname}.conf|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
-        sed -i "s|^  include /usr/local/nginx/conf/wpincludes/${vhostname}/wpsupercache_${vhostname}.conf|  #include /usr/local/nginx/conf/wpincludes/${vhostname}/wpsupercache_${vhostname}.conf|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
-        sed -i "s|try_files /wp-content/cache/supercache/\$http_host|#try_files /wp-content/cache/supercache/\$http_host|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
-        sed -i "s|#try_files \$cache_enabler_uri|try_files \$cache_enabler_uri|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
+        sed -i "s|^  #include /usr/local/nginx/conf/wpincludes/${vhostname}/wpcacheenabler_${vhostname}.conf|  include /usr/local/nginx/conf/wpincludes/${vhostname}/wpcacheenabler_${vhostname}.conf|" "/usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf"
+        sed -i "s|^  include /usr/local/nginx/conf/wpincludes/${vhostname}/wpsupercache_${vhostname}.conf|  #include /usr/local/nginx/conf/wpincludes/${vhostname}/wpsupercache_${vhostname}.conf|" "/usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf"
+        sed -i "s|try_files /wp-content/cache/supercache/\$http_host|#try_files /wp-content/cache/supercache/\$http_host|" "/usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf"
+        sed -i "s|#try_files \$cache_enabler_uri|try_files \$cache_enabler_uri|" "/usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf"
     fi
 fi
 
@@ -1536,7 +1536,7 @@ fi
 
 cat > "/root/tools/wp_uninstall_${vhostname}.sh" <<END
 #/bin/bash
-rm -rf /usr/local/nginx/conf/conf.d/${vhostname}.conf
+rm -rf "/usr/local/nginx/conf/conf.d/${vhostname}.conf"
 rm -rf /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
 rm -rf /home/nginx/domains/${vhostname}
 rm -rf /usr/local/nginx/conf/wpincludes/${vhostname}/wpsecure_${vhostname}.conf
@@ -1556,7 +1556,7 @@ rm -rf cronjoblist
 service nginx restart
 END
 
-chmod 0700 /root/tools/wp_uninstall_${vhostname}.sh
+chmod 0700 "/root/tools/wp_uninstall_${vhostname}.sh"
 
   cecho "------------------------------------------------------------" $boldgreen
   cecho "Created wp_updater_${vhostname}.sh script" $boldyellow
@@ -1587,7 +1587,7 @@ chown -R nginx:nginx /home/nginx/domains/${vhostname}/public${WPSUBDIR}
 } 2>&1 | /usr/bin/tr -cd '\11\12\15\40-\176' | sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g" | dos2unix | mail -r \$EMAIL -s "Wordpress WP-CLI Auto Update \$(date)" \$EMAIL
 ENDA
 
-chmod 0700 /root/tools/wp_updater_${vhostname}.sh
+chmod 0700 "/root/tools/wp_updater_${vhostname}.sh"
 
 if [[ -z "$(crontab -l 2>&1 | grep wp_updater_${vhostname}.sh)" ]]; then
     # generate random number of seconds to delay cron start
@@ -1595,10 +1595,10 @@ if [[ -z "$(crontab -l 2>&1 | grep wp_updater_${vhostname}.sh)" ]]; then
     # do not run at very same time during cron scheduling
     DELAY=$(echo ${RANDOM:0:3})
     crontab -l > cronjoblist
-    mkdir -p /home/nginx/domains/${vhostname}/cronjobs
-    cp cronjoblist /home/nginx/domains/${vhostname}/cronjobs/cronjoblist-before-wp-updater.txt
+    mkdir -p "/home/nginx/domains/${vhostname}/cronjobs"
+    cp cronjoblist "/home/nginx/domains/${vhostname}/cronjobs/cronjoblist-before-wp-updater.txt"
     echo "0 */8 * * * sleep ${DELAY}s ;/root/tools/wp_updater_${vhostname}.sh 2>/dev/null" >> cronjoblist
-    cp cronjoblist /home/nginx/domains/${vhostname}/cronjobs/cronjoblist-after-wp-updater.txt
+    cp cronjoblist "/home/nginx/domains/${vhostname}/cronjobs/cronjoblist-after-wp-updater.txt"
     crontab cronjoblist
     rm -rf cronjoblist
     crontab -l
@@ -1631,54 +1631,54 @@ if [[ "$levhostssl" = [yY] ]]; then
   if [[ "$LECLIENT_LE" = [yY] || "$LECLIENT_OFFICIAL" != [yY] ]]; then
     if [ -f "$LECLIENT_LEBIN" ]; then
       echo
-      cecho "obtaining Letsencrypt SSL certificate via simple shell le webroot authentication..." $boldgreen
+      cecho "obtaining Letsencrypt SSL certificate via acme.sh webroot authentication..." $boldgreen
       echo
-      mkdir -p /home/nginx/domains/${vhostname}/public/.well-known/acme-challenge
-      chown -R nginx:nginx /home/nginx/domains/${vhostname}/public/.well-known/acme-challenge
+      mkdir -p "/home/nginx/domains/${vhostname}/public/.well-known/acme-challenge"
+      chown -R nginx:nginx "/home/nginx/domains/${vhostname}/public/.well-known/acme-challenge"
       if [[ "$TOPLEVEL" = [yY] ]]; then
         if [[ "$LECLIENT_LESTAGE" = [yY] ]]; then
           echo "STAGE=1 FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH"
-          STAGE=1 FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH
+          STAGE=1 FORCE=1 $LECLIENT_LEBIN issue "/home/nginx/domains/${vhostname}/public" "${vhostname}" "www.${vhostname}" "$LECLIENT_LEKEYLENGTH"
         else
           echo "FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH"
-          FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${vhostname}/public ${vhostname} www.${vhostname} $LECLIENT_LEKEYLENGTH
+          FORCE=1 $LECLIENT_LEBIN issue "/home/nginx/domains/${vhostname}/public" "${vhostname}" "www.${vhostname}" "$LECLIENT_LEKEYLENGTH"
         fi
       else
         if [[ "$LECLIENT_LESTAGE" = [yY] ]]; then
           echo "STAGE=1 FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH"
-          STAGE=1 FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH
+          STAGE=1 FORCE=1 $LECLIENT_LEBIN issue "/home/nginx/domains/${vhostname}/public" "${vhostname}" no "$LECLIENT_LEKEYLENGTH"
         else
           echo "FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH"
-          FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${vhostname}/public ${vhostname} no $LECLIENT_LEKEYLENGTH
+          FORCE=1 $LECLIENT_LEBIN issue "/home/nginx/domains/${vhostname}/public" "${vhostname}" no "$LECLIENT_LEKEYLENGTH"
         fi
       fi
       LECHECK=$?
   
       if [[ "$LECHECK" = '0' ]]; then
         # create nginx concatenated cert file
-        if [[ -f /root/.le/${vhostname}/${vhostname}.cer && -f /root/.le/${vhostname}/ca.cer ]]; then
-          ls -lah /root/.le/${vhostname}/
+        if [[ -f "${ACME_BINDIR}/${vhostname}/${vhostname}.cer" && -f "${ACME_BINDIR}/${vhostname}/ca.cer" ]]; then
+          ls -lah "${ACME_BINDIR}/${vhostname}/"
           echo
-          echo "create /root/.le/${vhostname}/${vhostname}-leunified.crt"
-          cat /root/.le/${vhostname}/${vhostname}.cer /root/.le/${vhostname}/ca.cer > /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}-leunified.crt
-          ls -lah /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}-leunified.crt
+          echo "create ${ACME_BINDIR}/${vhostname}/${vhostname}-leunified.crt"
+          cat "${ACME_BINDIR}/${vhostname}/${vhostname}.cer" "${ACME_BINDIR}/${vhostname}/ca.cer" > "/usr/local/nginx/conf/ssl/${vhostname}/${vhostname}-leunified.crt"
+          ls -lah "/usr/local/nginx/conf/ssl/${vhostname}/${vhostname}-leunified.crt"
           echo
-          echo "installcert populate /root/.le/${vhostname}/${vhostname}.conf"
-          $LECLIENT_LEBIN installcert ${vhostname} /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}.cer /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}-le.key /usr/local/nginx/conf/ssl/${vhostname}/ca.cer /usr/bin/ngxreload
+          echo "installcert populate ${ACME_BINDIR}/${vhostname}/${vhostname}.conf"
+          $LECLIENT_LEBIN installcert "${vhostname}" "/usr/local/nginx/conf/ssl/${vhostname}/${vhostname}.cer" "/usr/local/nginx/conf/ssl/${vhostname}/${vhostname}-le.key" "/usr/local/nginx/conf/ssl/${vhostname}/ca.cer" /usr/bin/ngxreload
           echo
         fi
    
         # replace self signed ssl cert with letsencrypt ssl certificate and enable ssl stapling
         # if letsencrypt webroot authentication was sUccessfully ran and SSL certificate obtained
         # otherwise leave original self signed SSL certificates in place
-        sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${vhostname}\/${vhostname}.crt|\/usr\/local\/nginx\/conf\/ssl\/${vhostname}\/${vhostname}-leunified.crt|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
-        sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${vhostname}\/${vhostname}.key|\/usr\/local\/nginx\/conf\/ssl\/${vhostname}\/${vhostname}-le.key|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
-        sed -i "s|#resolver |resolver |" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
-        sed -i "s|#resolver_timeout|resolver_timeout|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
-        sed -i "s|#ssl_stapling on|ssl_stapling on|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
-        sed -i "s|#ssl_stapling_verify|ssl_stapling_verify|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
-        sed -i "s|#ssl_trusted_certificate|ssl_trusted_certificate|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
-        sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${vhostname}\/${vhostname}-trusted.crt|\/usr\/local\/nginx\/conf\/ssl\/${vhostname}\/${vhostname}-leunified.crt|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
+        sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${vhostname}\/${vhostname}.crt|\/usr\/local\/nginx\/conf\/ssl\/${vhostname}\/${vhostname}-leunified.crt|" "/usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf"
+        sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${vhostname}\/${vhostname}.key|\/usr\/local\/nginx\/conf\/ssl\/${vhostname}\/${vhostname}-le.key|" "/usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf"
+        sed -i "s|#resolver |resolver |" "/usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf"
+        sed -i "s|#resolver_timeout|resolver_timeout|" "/usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf"
+        sed -i "s|#ssl_stapling on|ssl_stapling on|" "/usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf"
+        sed -i "s|#ssl_stapling_verify|ssl_stapling_verify|" "/usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf"
+        sed -i "s|#ssl_trusted_certificate|ssl_trusted_certificate|" "/usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf"
+        sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${vhostname}\/${vhostname}-trusted.crt|\/usr\/local\/nginx\/conf\/ssl\/${vhostname}\/${vhostname}-leunified.crt|" "/usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf"
         /usr/bin/nprestart
       fi # LECHECK
     else
@@ -1691,14 +1691,14 @@ if [[ "$levhostssl" = [yY] ]]; then
     echo
     cecho "obtaining Letsencrypt SSL certificate via webroot authentication..." $boldgreen
     echo
-    mkdir -p /home/nginx/domains/${vhostname}/public/.well-known/acme-challenge
-    chown -R nginx:nginx /home/nginx/domains/${vhostname}/public/.well-known/acme-challenge
+    mkdir -p "/home/nginx/domains/${vhostname}/public/.well-known/acme-challenge"
+    chown -R nginx:nginx "/home/nginx/domains/${vhostname}/public/.well-known/acme-challenge"
     if [[ "$TOPLEVEL" = [yY] ]]; then
       echo "/root/.local/share/letsencrypt/bin/letsencrypt -c /etc/letsencrypt/webroot.ini --user-agent $LE_USERAGENT --webroot-path /home/nginx/domains/${vhostname}/public -d ${vhostname} -d www.${vhostname} certonly"
-      /root/.local/share/letsencrypt/bin/letsencrypt -c /etc/letsencrypt/webroot.ini --user-agent $LE_USERAGENT --webroot-path /home/nginx/domains/${vhostname}/public -d ${vhostname} -d www.${vhostname} certonly
+      /root/.local/share/letsencrypt/bin/letsencrypt -c /etc/letsencrypt/webroot.ini --user-agent $LE_USERAGENT --webroot-path "/home/nginx/domains/${vhostname}/public" -d "${vhostname}" -d "www.${vhostname}" certonly
     else
       echo "/root/.local/share/letsencrypt/bin/letsencrypt -c /etc/letsencrypt/webroot.ini --user-agent $LE_USERAGENT --webroot-path /home/nginx/domains/${vhostname}/public -d ${vhostname} certonly"
-      /root/.local/share/letsencrypt/bin/letsencrypt -c /etc/letsencrypt/webroot.ini --user-agent $LE_USERAGENT --webroot-path /home/nginx/domains/${vhostname}/public -d ${vhostname} certonly
+      /root/.local/share/letsencrypt/bin/letsencrypt -c /etc/letsencrypt/webroot.ini --user-agent $LE_USERAGENT --webroot-path "/home/nginx/domains/${vhostname}/public" -d "${vhostname}" certonly
     fi
     LECHECK=$?
 
@@ -1707,23 +1707,23 @@ if [[ "$levhostssl" = [yY] ]]; then
       # otherwise leave original self signed SSL certificates in place
       
       # EMAIL and LOGGING for cron
-      echo "EMAIL=\$(awk '/email/ {print \$3}' /etc/letsencrypt/webroot.ini)" > /usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron
-      echo "ERRORLOG=\$(tail /var/log/letsencrypt/letsencrypt.log)" >> /usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron
-      echo "CERT=\"/etc/letsencrypt/live/${vhostname}/cert.pem\"" >> /usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron
-      echo "" >> /usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron
+      echo "EMAIL=\$(awk '/email/ {print \$3}' /etc/letsencrypt/webroot.ini)" > "/usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron"
+      echo "ERRORLOG=\$(tail /var/log/letsencrypt/letsencrypt.log)" >> "/usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron"
+      echo "CERT=\"/etc/letsencrypt/live/${vhostname}/cert.pem\"" >> "/usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron"
+      echo "" >> "/usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron"
 
-echo "if [[ -f "\$CERT" ]]; then" >> /usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron
-echo "  expiry=\$(openssl x509 -enddate -noout -in \$CERT | cut -d'=' -f2 | awk '{print \$2 " " \$1 " " \$4}')" >> /usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron
-echo "  epochExpirydate=\$(date -d\"\${expiry}\" +%s)" >> /usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron
-echo "  epochToday=\$(date +%s)" >> /usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron
-echo "  secondsToExpire=\$(echo \${epochExpirydate} - \${epochToday} | bc)" >> /usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron
-echo "  daysToExpire=\$(echo \"\${secondsToExpire} / 60 / 60 / 24\" | bc)" >> /usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron
-echo "  if [ "\$daysToExpire" -lt '30' ]; then" >> /usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron
+echo "if [[ -f "\$CERT" ]]; then" >> "/usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron"
+echo "  expiry=\$(openssl x509 -enddate -noout -in \$CERT | cut -d'=' -f2 | awk '{print \$2 " " \$1 " " \$4}')" >> "/usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron"
+echo "  epochExpirydate=\$(date -d\"\${expiry}\" +%s)" >> "/usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron"
+echo "  epochToday=\$(date +%s)" >> "/usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron"
+echo "  secondsToExpire=\$(echo \${epochExpirydate} - \${epochToday} | bc)" >> "/usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron"
+echo "  daysToExpire=\$(echo \"\${secondsToExpire} / 60 / 60 / 24\" | bc)" >> "/usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron"
+echo "  if [ "\$daysToExpire" -lt '30' ]; then" >> "/usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron"
 
       if [[ "$TOPLEVEL" = [yY] ]]; then
-        echo "    /root/.local/share/letsencrypt/bin/letsencrypt -c /etc/letsencrypt/webroot.ini --user-agent $LE_USERAGENT --webroot-path /home/nginx/domains/${vhostname}/public -d ${vhostname} -d www.${vhostname} certonly" >> /usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron
+        echo "    /root/.local/share/letsencrypt/bin/letsencrypt -c /etc/letsencrypt/webroot.ini --user-agent $LE_USERAGENT --webroot-path /home/nginx/domains/${vhostname}/public -d ${vhostname} -d www.${vhostname} certonly" >> "/usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron"
       else
-        echo "    /root/.local/share/letsencrypt/bin/letsencrypt -c /etc/letsencrypt/webroot.ini --user-agent $LE_USERAGENT --webroot-path /home/nginx/domains/${vhostname}/public -d ${vhostname} certonly" >> /usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron
+        echo "    /root/.local/share/letsencrypt/bin/letsencrypt -c /etc/letsencrypt/webroot.ini --user-agent $LE_USERAGENT --webroot-path /home/nginx/domains/${vhostname}/public -d ${vhostname} certonly" >> "/usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron"
       fi
       
       # cronjob error check and email send
@@ -1740,7 +1740,7 @@ CFF
 
       echo
       echo "/usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron contents:"      
-      cat /usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron
+      cat "/usr/local/nginx/conf/ssl/${vhostname}/letsencrypt-${vhostname}-cron"
       
       if [[ -z "$(crontab -l 2>&1 | grep 'letsencrypt-${vhostname}-cron')" ]]; then
           # generate random number of seconds to delay cron start
@@ -1758,14 +1758,14 @@ CFF
       # replace self signed ssl cert with letsencrypt ssl certificate and enable ssl stapling
       # if letsencrypt webroot authentication was sUccessfully ran and SSL certificate obtained
       # otherwise leave original self signed SSL certificates in place
-      sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${vhostname}\/${vhostname}.crt|\/etc\/letsencrypt\/live\/${vhostname}\/fullchain.pem|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
-      sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${vhostname}\/${vhostname}.key|\/etc\/letsencrypt\/live\/${vhostname}\/privkey.pem|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
-      sed -i "s|#resolver |resolver |" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
-      sed -i "s|#resolver_timeout|resolver_timeout|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
-      sed -i "s|#ssl_stapling on|ssl_stapling on|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
-      sed -i "s|#ssl_stapling_verify|ssl_stapling_verify|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
-      sed -i "s|#ssl_trusted_certificate|ssl_trusted_certificate|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
-      sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${vhostname}\/${vhostname}-trusted.crt|\/etc\/letsencrypt\/live\/${vhostname}\/fullchain.pem|" /usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf
+      sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${vhostname}\/${vhostname}.crt|\/etc\/letsencrypt\/live\/${vhostname}\/fullchain.pem|" "/usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf"
+      sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${vhostname}\/${vhostname}.key|\/etc\/letsencrypt\/live\/${vhostname}\/privkey.pem|" "/usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf"
+      sed -i "s|#resolver |resolver |" "/usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf"
+      sed -i "s|#resolver_timeout|resolver_timeout|" "/usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf"
+      sed -i "s|#ssl_stapling on|ssl_stapling on|" "/usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf"
+      sed -i "s|#ssl_stapling_verify|ssl_stapling_verify|" "/usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf"
+      sed -i "s|#ssl_trusted_certificate|ssl_trusted_certificate|" "/usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf"
+      sed -i "s|\/usr\/local\/nginx\/conf\/ssl\/${vhostname}\/${vhostname}-trusted.crt|\/etc\/letsencrypt\/live\/${vhostname}\/fullchain.pem|" "/usr/local/nginx/conf/conf.d/${vhostname}.ssl.conf"
       /usr/bin/nprestart
     fi # LECHECK
   else
@@ -1818,7 +1818,7 @@ if [[ "$vhostssl" = [yY] ]]; then
     if [[ "$LECLIENT_LE" = [yY] ]]; then
       cecho "Letsencrypt SSL Certificate: /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}.cer" $boldyellow
       cecho "Letsencrypt SSL Certificate Private Key: /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}-le.key" $boldyellow
-      cecho "Letsencrypt SSL Certificate CSR: /root/.le/${vhostname}/${vhostname}.csr" $boldyellow
+      cecho "Letsencrypt SSL Certificate CSR: ${ACME_BINDIR}/${vhostname}/${vhostname}.csr" $boldyellow
       cecho "Letsencrypt SSL Certificate Full Chain: /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}-unified.pem" $boldyellow
       cecho "Letsencrypt SSL simple shell le config: /usr/local/nginx/conf/ssl/${vhostname}/${vhostname}.conf" $boldyellow
     fi #LECLIENT_LE
@@ -1852,7 +1852,7 @@ if [[ "$setdisplayname" = [yY] ]]; then
 fi
 
 if [[ "$disablepwdprotect" != [yY] ]]; then
-  if [[ -f /usr/local/nginx/conf/htpasswd.sh && -f /home/nginx/domains/$vhostname/htpasswd_wplogin ]]; then
+  if [[ -f /usr/local/nginx/conf/htpasswd.sh && -f "/home/nginx/domains/$vhostname/htpasswd_wplogin" ]]; then
     echo  
     cecho "Wordpress wp-login.php password protection info:" $boldyellow
     cecho "wp-login.php protection file /home/nginx/domains/$vhostname/htpasswd_wplogin" $boldyellow
@@ -1870,11 +1870,11 @@ if [[ "$disablepwdprotect" != [yY] ]]; then
   fi
 elif [[ "$disablepwdprotect" = [yY] ]]; then
     # disable wp-login.php password protection if user opts to do so
-    sed -i "s|auth_basic \"Private\"|#auth_basic \"Private\"|" /usr/local/nginx/conf/conf.d/$vhostname.conf
-    sed -i "s|auth_basic_user_file \/home\/nginx\/domains\/$vhostname\/htpasswd_wplogin|#auth_basic_user_file \/home\/nginx\/domains\/$vhostname\/htpasswd_wplogin|" /usr/local/nginx/conf/conf.d/$vhostname.conf
+    sed -i "s|auth_basic \"Private\"|#auth_basic \"Private\"|" "/usr/local/nginx/conf/conf.d/$vhostname.conf"
+    sed -i "s|auth_basic_user_file \/home\/nginx\/domains\/$vhostname\/htpasswd_wplogin|#auth_basic_user_file \/home\/nginx\/domains\/$vhostname\/htpasswd_wplogin|" "/usr/local/nginx/conf/conf.d/$vhostname.conf"
     if [[ "$vhostssl" = [yY] ]]; then
-      sed -i "s|auth_basic \"Private\"|#auth_basic \"Private\"|" /usr/local/nginx/conf/conf.d/$vhostname.conf
-      sed -i "s|auth_basic_user_file \/home\/nginx\/domains\/$vhostname\/htpasswd_wplogin|#auth_basic_user_file \/home\/nginx\/domains\/$vhostname\/htpasswd_wplogin|" /usr/local/nginx/conf/conf.d/$vhostname.ssl.conf
+      sed -i "s|auth_basic \"Private\"|#auth_basic \"Private\"|" "/usr/local/nginx/conf/conf.d/$vhostname.conf"
+      sed -i "s|auth_basic_user_file \/home\/nginx\/domains\/$vhostname\/htpasswd_wplogin|#auth_basic_user_file \/home\/nginx\/domains\/$vhostname\/htpasswd_wplogin|" "/usr/local/nginx/conf/conf.d/$vhostname.ssl.conf"
     fi
     /usr/bin/nprestart
 fi
@@ -1890,7 +1890,7 @@ echo
 cecho "-------------------------------------------------------------" $boldyellow
 cecho "Current vhost ssl files listing at: /usr/local/nginx/conf/ssl/${vhostname}" $boldwhite
 echo
-ls -Alhrt /usr/local/nginx/conf/ssl/${vhostname} | awk '{ printf "%-4s%-4s%-8s%-6s %s\n", $6, $7, $8, $5, $9 }'
+ls -Alhrt "/usr/local/nginx/conf/ssl/${vhostname}" | awk '{ printf "%-4s%-4s%-8s%-6s %s\n", $6, $7, $8, $5, $9 }'
 fi
 
 echo

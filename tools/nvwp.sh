@@ -446,7 +446,7 @@ umask 027
 mkdir -p /home/nginx/domains/$vhostname/{public,private,log,backup}
 
 if [[ "$PUREFTPD_DISABLED" = [nN] ]]; then
-  ( echo ${ftppass} ; echo ${ftppass} ) | pure-pw useradd $ftpuser -u $PUREUSER -g $PUREGROUP -d /home/nginx/domains/$vhostname
+  ( echo "${ftppass}" ; echo "${ftppass}" ) | pure-pw useradd $ftpuser -u $PUREUSER -g $PUREGROUP -d /home/nginx/domains/$vhostname
   pure-pw mkdb
 fi
 
@@ -1104,7 +1104,7 @@ fi
 if [[ "$RUN" = [yY] ]]; then
   {
     funct_nginxaddvhost
-  } 2>&1 | tee ${CENTMINLOGDIR}/centminmod_${DT}_nginx_addvhost_nvwp.log
+  } 2>&1 | tee "${CENTMINLOGDIR}/centminmod_${DT}_nginx_addvhost_nvwp.log"
 else
   usage
 fi
