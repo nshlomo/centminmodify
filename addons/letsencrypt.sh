@@ -196,7 +196,7 @@ FFG
 		echo
 	fi
 
-	./acme.sh install
+	./acme.sh --install
 	which acme
 	acme
 
@@ -679,23 +679,23 @@ deploycert() {
       					echo
       					mkdir -p "/home/nginx/domains/${levhostname}/public/.well-known/acme-challenge"
       					chown -R nginx:nginx "/home/nginx/domains/${levhostname}/public/.well-known/acme-challenge"
-      					if [[ "$TOPLEVEL" = [yY] ]]; then
-      						if [[ "$LECLIENT_LESTAGE" = [yY] ]]; then
-        						echo "STAGE=1 FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${levhostname}/public ${levhostname} www.${levhostname} $LECLIENT_LEKEYLENGTH"
-        						STAGE=1 FORCE=1 $LECLIENT_LEBIN issue "/home/nginx/domains/${levhostname}/public" "${levhostname}" "www.${levhostname}" "$LECLIENT_LEKEYLENGTH"
-        					else
-        						echo "FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${levhostname}/public ${levhostname} www.${levhostname} $LECLIENT_LEKEYLENGTH"
-        						FORCE=1 $LECLIENT_LEBIN issue "/home/nginx/domains/${levhostname}/public" "${levhostname}" "www.${levhostname}" "$LECLIENT_LEKEYLENGTH"
-        					fi
-      					else
-      						if [[ "$LECLIENT_LESTAGE" = [yY] ]]; then
-        						echo "STAGE=1 FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${levhostname}/public ${levhostname} no $LECLIENT_LEKEYLENGTH"
-        						STAGE=1 FORCE=1 $LECLIENT_LEBIN issue "/home/nginx/domains/${levhostname}/public" "${levhostname}" no "$LECLIENT_LEKEYLENGTH"
-        					else	
-        						echo "FORCE=1 $LECLIENT_LEBIN issue /home/nginx/domains/${levhostname}/public ${levhostname} no $LECLIENT_LEKEYLENGTH"
-        						FORCE=1 $LECLIENT_LEBIN issue "/home/nginx/domains/${levhostname}/public" "${levhostname}" no "$LECLIENT_LEKEYLENGTH"
-        					fi
-      					fi
+					      if [[ "$TOPLEVEL" = [yY] ]]; then
+					        if [[ "$LECLIENT_LESTAGE" = [yY] ]]; then
+					          echo "STAGE=1 FORCE=1 $LECLIENT_LEBIN --issue  -w /home/nginx/domains/${vhostname}/public -d ${vhostname} -d www.${vhostname} -k $LECLIENT_LEKEYLENGTH"
+					          STAGE=1 FORCE=1 $LECLIENT_LEBIN --issue -w "/home/nginx/domains/${vhostname}/public" -d "${vhostname}" -d "www.${vhostname}" -k "$LECLIENT_LEKEYLENGTH"
+					        else
+					          echo "FORCE=1 $LECLIENT_LEBIN --issue  -w /home/nginx/domains/${vhostname}/public -d ${vhostname} -d www.${vhostname} -k $LECLIENT_LEKEYLENGTH"
+					          FORCE=1 $LECLIENT_LEBIN --issue -w "/home/nginx/domains/${vhostname}/public" -d "${vhostname}" -d "www.${vhostname}" -k "$LECLIENT_LEKEYLENGTH"
+					        fi
+					      else
+					        if [[ "$LECLIENT_LESTAGE" = [yY] ]]; then
+					          echo "STAGE=1 FORCE=1 $LECLIENT_LEBIN --issue  -w /home/nginx/domains/${vhostname}/public -d ${vhostname} -k $LECLIENT_LEKEYLENGTH"
+					          STAGE=1 FORCE=1 $LECLIENT_LEBIN --issue -w "/home/nginx/domains/${vhostname}/public" -d "${vhostname}" -k "$LECLIENT_LEKEYLENGTH"
+					        else
+					          echo "FORCE=1 $LECLIENT_LEBIN --issue  -w /home/nginx/domains/${vhostname}/public -d ${vhostname} -k $LECLIENT_LEKEYLENGTH"
+					          FORCE=1 $LECLIENT_LEBIN --issue -w "/home/nginx/domains/${vhostname}/public" -d "${vhostname}" -k "$LECLIENT_LEKEYLENGTH"
+					        fi
+					      fi
       					LECHECK=$?
 					  
       					if [[ "$LECHECK" = '0' ]]; then

@@ -97,7 +97,7 @@ FFG
 		echo
 	fi
 
-	./acme.sh install
+	./acme.sh --install
 	which acme
 	acme
 
