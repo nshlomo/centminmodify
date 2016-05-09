@@ -211,8 +211,8 @@ FFG
 leclientsetup() {
 	# build letsencrypt version timestamp
 	# find last github commit date to compare with current client version number
-	if [ -d /root/tools/letsencrypt ]; then
-		LECOMMIT_DATE=$(cd /root/tools/letsencrypt; date -d @$(git log -n1 --format="%at") +%Y%m%d)
+	if [ -d /root/tools/certbot ]; then
+		LECOMMIT_DATE=$(cd /root/tools/certbot; date -d @$(git log -n1 --format="%at") +%Y%m%d)
 	fi
 	# setup letsencrypt client and virtualenv
 	# https://community.centminmod.com/posts/19914/
@@ -229,16 +229,16 @@ leclientsetup() {
 		LE_CLIENTVER=$(/root/.local/share/letsencrypt/bin/letsencrypt --version 2>&1 | awk '{print $2}')
 		LE_CLIENTCOMPARE=$(echo $LE_CLIENTVER | grep $LECOMMIT_DATE)
 		if [[ "$LE_CLIENTCOMPARE" ]]; then
-			cd letsencrypt
+			cd certbot
 			git pull
 		else
-			rm -rf /root/tools/letsencrypt
-			git clone https://github.com/letsencrypt/letsencrypt
-			cd letsencrypt
+			rm -rf /root/tools/certbot
+			git clone https://github.com/certbot/certbot
+			cd certbot
 		fi
 	elif [ ! -f /root/.local/share/letsencrypt/bin/letsencrypt ]; then
-		git clone https://github.com/letsencrypt/letsencrypt
-		cd letsencrypt
+		git clone https://github.com/certbot/certbot
+		cd certbot
 	fi
 		
 	if [[ "$CENTOS_SIX" = '6' && -f /usr/bin/python2.7 ]]; then
