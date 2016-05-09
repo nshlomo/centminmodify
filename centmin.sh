@@ -458,6 +458,7 @@ NGINXBACKUPDIR='/usr/local/nginxbackup'
 LECLIENT_OFFICIAL='y'        # use official letsencrypt.org client
 LECLIENT_GITURL='https://github.com/Neilpang/acme.sh'
 LECLIENT_LE='n'              # use 3rd party shell client https://github.com/Neilpang/le
+# key length: 2048, 3072, 4096, 8192 or ec-256, ec-384
 LECLIENT_LEKEYLENGTH='2048'  # 3rd party sheel client default key length
 LECLIENT_LESTAGE='y'         # 3rd party shell client STAGING API
 ACME_BINDIR='/root/.acme.sh'
