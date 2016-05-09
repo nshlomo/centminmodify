@@ -709,7 +709,7 @@ deploycert() {
           					ls -lah "/usr/local/nginx/conf/ssl/${levhostname}/${levhostname}-leunified.crt"
           					echo
           					echo "installcert populate ${ACME_BINDIR}/${levhostname}/${levhostname}.conf"
-          					$LECLIENT_LEBIN installcert "${levhostname}" "/usr/local/nginx/conf/ssl/${levhostname}/${levhostname}.cer" "/usr/local/nginx/conf/ssl/${levhostname}/${levhostname}-le.key" "/usr/local/nginx/conf/ssl/${levhostname}/ca.cer" /usr/bin/ngxreload
+          					$LECLIENT_LEBIN installcert -d "${levhostname}" --certpath "/usr/local/nginx/conf/ssl/${levhostname}/${levhostname}.cer" --keypath "/usr/local/nginx/conf/ssl/${levhostname}/${levhostname}-le.key" --capath "/usr/local/nginx/conf/ssl/${levhostname}/ca.cer" --reloadcmd /usr/bin/ngxreload
           					echo
         					fi
 					   
