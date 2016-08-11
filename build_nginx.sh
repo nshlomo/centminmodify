@@ -14,7 +14,7 @@ export SOURCE_PCRE=ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/
 export SOURCE_NGINX=http://nginx.org/download/
 #export SOURCE_RTMP=https://github.com/arut/nginx-rtmp-module.git
 #export SOURCE_PAGESPEED=https://github.com/pagespeed/ngx_pagespeed/archive/
- 
+export SOURCE_CONCAT=https://github.com/taobao/nginx-http-concat.git 
 # clean out any files from previous runs of this script
 rm -rf build
 mkdir build
@@ -33,7 +33,7 @@ wget -P ./build $SOURCE_NGINX$VERSION_NGINX.tar.gz
 #wget -P ./build $SOURCE_PAGESPEED$VERSION_PAGESPEED.tar.gz
 #wget -P ./build https://dl.google.com/dl/page-speed/psol/${NPS_VERSION}.tar.gz
 git clone $SOURCE_RTMP ./build/rtmp
- 
+git clone $SOURCE_CONCAT ./build/nginx-http-concat
 # expand the source files
 echo "Extract Packages"
 cd build
@@ -89,7 +89,9 @@ mkdir -p $BPATH/nginx
  --with-http_auth_request_module \
  --with-http_addition_module \
  --with-http_geoip_module \
- --with-http_gzip_static_module
+ --with-http_gzip_static_module \
+ --with-http_sub_module \
+ --add-module=$BPATH/nginx-http-concat
 # --add-module=$BPATH/rtmp
  #--add-module=$BPATH/ngx_pagespeed-${NPS_VERSION}-beta
  
